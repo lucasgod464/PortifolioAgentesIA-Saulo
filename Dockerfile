@@ -38,12 +38,16 @@ COPY package*.json ./
 # Instalar dependências necessárias incluindo algumas dev dependencies para produção
 RUN npm ci --include=dev && npm cache clean --force
 
+# Criar diretório client necessário
+RUN mkdir -p client
+
 # Copiar arquivos construídos do estágio anterior
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/shared ./shared
 COPY --from=builder --chown=nodejs:nodejs /app/server ./server
 COPY --from=builder --chown=nodejs:nodejs /app/vite.config.ts ./vite.config.ts
 COPY --from=builder --chown=nodejs:nodejs /app/theme.json ./theme.json
+COPY --from=builder --chown=nodejs:nodejs /app/client/theme.json ./client/theme.json
 
 # Definir variáveis de ambiente
 ENV NODE_ENV=production
