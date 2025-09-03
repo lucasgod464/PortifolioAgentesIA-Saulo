@@ -154,17 +154,17 @@ const Footer: React.FC = () => {
         <LogoContainer>
           {logoUrl ? (
             // Se houver uma URL de logo definida, exibe a imagem
-            <LogoImage src={logoUrl} alt="Logo" />
+            (<LogoImage src={logoUrl} alt="Logo" />)
           ) : (
             // Fallback: exibe o logo padrão se a variável de ambiente não estiver definida
-            <>
+            (<>
               <LogoIcon>
                 <i className="fas fa-brain"></i>
               </LogoIcon>
               <LogoText>
                 Nexus<span>AI</span>
               </LogoText>
-            </>
+            </>)
           )}
         </LogoContainer>
         <FooterText>
@@ -174,7 +174,7 @@ const Footer: React.FC = () => {
 
         <BottomBar>
           <Copyright>
-            <span>© {currentYear} NexusAI. Todos os direitos reservados.</span>
+            <span className="font-normal">© {currentYear} NexusAI. Tod os os direitos reservados.</span>
             <SocialLinks>
               <SocialLink href="#" aria-label="Twitter">
                 <i className="fab fa-twitter"></i>
