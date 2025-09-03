@@ -9,7 +9,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   isAdmin: boolean("isAdmin").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 // Tabela de agentes (correspondente ao hardcoded no client)
@@ -18,7 +18,7 @@ export const agents = pgTable("agents", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   icon: text("icon").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 // Tabela de prompts dos agentes
@@ -27,8 +27,8 @@ export const agentPrompts = pgTable("agent_prompts", {
   agentId: integer("agent_id").notNull().references(() => agents.id),
   prompt: text("prompt").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 // Define relações

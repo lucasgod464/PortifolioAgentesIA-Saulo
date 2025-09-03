@@ -10,7 +10,7 @@ dotenv.config();
 console.log("🔧 Conectando ao banco de dados PostgreSQL local no Replit...");
 
 // Verificar se temos a variável de ambiente do banco de dados
-if (!process.env.DATABASE_URL2) {
+if (!process.env.DATABASE_URL) {
   throw new Error(
     "DATABASE_URL não encontrada. Certifique-se de que o banco de dados PostgreSQL está provisionado.",
   );
@@ -18,11 +18,11 @@ if (!process.env.DATABASE_URL2) {
 console.log(
   "✅ DATABASE_URL encontrada:",
   "***" +
-    process.env.DATABASE_URL2.substring(process.env.DATABASE_URL2.indexOf("@")),
+    process.env.DATABASE_URL.substring(process.env.DATABASE_URL.indexOf("@")),
 );
 // Usar as variáveis de ambiente fornecidas pelo Replit
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL2,
+  connectionString: process.env.DATABASE_URL,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
