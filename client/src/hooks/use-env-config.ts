@@ -177,3 +177,32 @@ export const useSiteTitleFromEnv = () => {
     fetchConfig();
   }, []);
 };
+
+// Hook para obter o link da logo da API em tempo real
+export const useLogoLinkFromEnv = () => {
+  const [logoLink, setLogoLink] = useState<string>('/');
+  
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          console.log('Link da logo obtido da API:', config.logoLink);
+          setLogoLink(config.logoLink);
+        } else {
+          // Fallback se a API falhar
+          console.log('Erro ao obter link da logo da API, usando padrão');
+          setLogoLink('/');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar link da logo da API:', error);
+        setLogoLink('/');
+      }
+    };
+
+    fetchConfig();
+  }, []);
+  
+  return logoLink;
+};

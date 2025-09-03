@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { useLogoFromEnv } from "../hooks/use-env-config";
+import { useLogoFromEnv, useLogoLinkFromEnv } from "../hooks/use-env-config";
 
 const HeaderContainer = styled.header`
   position: relative;
@@ -47,6 +47,24 @@ const LogoImage = styled.img`
   object-fit: contain;
   padding: 5px;
   border-radius: 5px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+const LogoLink = styled.a`
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
 `;
 
 const LogoText = styled.h1`
@@ -68,24 +86,27 @@ const LogoText = styled.h1`
 
 const Header: React.FC = () => {
   const logoUrl = useLogoFromEnv();
+  const logoLink = useLogoLinkFromEnv();
 
   return (
     <HeaderContainer>
       <HeaderContent>
         <LogoContainer>
           {logoUrl ? (
-            // Se houver uma URL de logo definida, exibe a imagem
-            <LogoImage src={logoUrl} alt="Logo" />
+            // Se houver uma URL de logo definida, exibe a imagem clicável
+            <LogoLink href={logoLink} data-testid="logo-link">
+              <LogoImage src={logoUrl} alt="Logo" />
+            </LogoLink>
           ) : (
-            // Fallback: exibe o logo padrão se a variável de ambiente não estiver definida
-            <>
+            // Fallback: exibe o logo padrão clicável se a variável de ambiente não estiver definida
+            <LogoLink href={logoLink} data-testid="logo-link">
               <LogoIcon>
                 <i className="fas fa-brain"></i>
               </LogoIcon>
               <LogoText>
                 Nexus<span>AI</span>
               </LogoText>
-            </>
+            </LogoLink>
           )}
         </LogoContainer>
       </HeaderContent>
