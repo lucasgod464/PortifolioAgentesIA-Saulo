@@ -5,6 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VITE_LOGO_URL=${VITE_LOGO_URL}
+        - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL}
+        - VITE_WHATSAPP_NUMBER=${VITE_WHATSAPP_NUMBER}
     ports:
       - "5000:5000"
     environment:
@@ -13,9 +17,6 @@ services:
       # Variáveis de ambiente que serão configuradas no Easypanel
       - DATABASE_URL=${DATABASE_URL}
       - SESSION_SECRET=${SESSION_SECRET}
-      - VITE_LOGO_URL=${VITE_LOGO_URL}
-      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL}
-      - VITE_WHATSAPP_NUMBER=${VITE_WHATSAPP_NUMBER}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "--version"]

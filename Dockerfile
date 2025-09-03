@@ -4,6 +4,16 @@ FROM node:20-alpine AS builder
 # Instalar dependências do sistema necessárias
 RUN apk add --no-cache python3 make g++ git
 
+# Argumentos de build para variáveis de ambiente do Vite
+ARG VITE_LOGO_URL
+ARG VITE_WEBHOOK_URL
+ARG VITE_WHATSAPP_NUMBER
+
+# Definir as variáveis de ambiente para o build
+ENV VITE_LOGO_URL=$VITE_LOGO_URL
+ENV VITE_WEBHOOK_URL=$VITE_WEBHOOK_URL
+ENV VITE_WHATSAPP_NUMBER=$VITE_WHATSAPP_NUMBER
+
 # Diretório de trabalho
 WORKDIR /app
 
@@ -16,7 +26,7 @@ RUN npm ci --include=dev
 # Copiar código fonte
 COPY . .
 
-# Build da aplicação
+# Build da aplicação (agora com as variáveis de ambiente definidas)
 RUN npm run build
 
 # Estágio de produção
