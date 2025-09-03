@@ -30,7 +30,7 @@ const Card = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(130deg, rgba(139, 92, 246, 0.15), transparent 80%);
+    background: linear-gradient(130deg, rgba(0, 255, 255, 0.12), rgba(168, 85, 247, 0.08) 80%);
     z-index: -1;
     opacity: 0;
     transition: opacity 0.4s ease;
@@ -49,7 +49,10 @@ const Card = styled.div`
 
 const IconContainer = styled.div`
   margin-bottom: 1.5rem;
-  background: linear-gradient(to bottom right, rgba(139, 92, 246, 0.2), rgba(37, 99, 235, 0.2));
+  background: linear-gradient(135deg, 
+    rgba(0, 255, 255, 0.2) 0%,
+    rgba(168, 85, 247, 0.2) 100%
+  );
   width: 4rem;
   height: 4rem;
   border-radius: 0.75rem;
@@ -60,7 +63,13 @@ const IconContainer = styled.div`
 
 const Icon = styled.div`
   font-size: 2rem;
-  color: #c4b5fd;
+  background: linear-gradient(90deg, 
+    hsl(180, 100%, 70%) 0%,
+    hsl(280, 100%, 70%) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   transition: transform 0.4s ease;
   
   ${Card}:hover & {
@@ -88,7 +97,10 @@ const ButtonContainer = styled.div`
 const Button = styled.a`
   display: inline-block;
   padding: 0.625rem 1.5rem;
-  background: linear-gradient(to right, #6b46c1, #2563eb);
+  background: linear-gradient(90deg, 
+    hsl(180, 100%, 50%) 0%,
+    hsl(280, 100%, 60%) 100%
+  );
   color: white;
   border-radius: 0.5rem;
   font-weight: 500;
@@ -98,9 +110,11 @@ const Button = styled.a`
   overflow: hidden;
   width: 100%;
   text-align: center;
+  text-decoration: none;
   
   &:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 200, 255, 0.3);
   }
   
   &:after {
@@ -110,7 +124,7 @@ const Button = styled.a`
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(transparent, rgba(139, 92, 246, 0.1), transparent);
+    background: linear-gradient(transparent, rgba(0, 255, 255, 0.15), transparent);
     opacity: 0;
     transform: rotate(30deg);
     transition: opacity 0.3s ease;

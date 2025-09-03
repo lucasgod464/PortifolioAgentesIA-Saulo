@@ -11,10 +11,16 @@ import FloatingParticles from '../components/FloatingParticles';
 
 const HomeContainer = styled.div`
   min-height: 100vh;
-  background-color: #0f172a;
+  background: linear-gradient(135deg, 
+    hsl(220, 30%, 8%) 0%,
+    hsl(240, 40%, 12%) 30%,
+    hsl(260, 30%, 10%) 70%,
+    hsl(220, 30%, 8%) 100%
+  );
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(107, 70, 193, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
   overflow-x: hidden;
   position: relative;
 `;

@@ -41,7 +41,11 @@ const HeroTitle = styled.h2`
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
-    background-image: linear-gradient(to right, #c4b5fd, #8b5cf6);
+    background-image: linear-gradient(90deg, 
+      hsl(180, 100%, 50%) 0%,
+      hsl(240, 100%, 60%) 50%,
+      hsl(300, 100%, 60%) 100%
+    );
   }
   
   @keyframes float {
@@ -77,7 +81,10 @@ const PrimaryButton = styled.a`
   display: inline-block;
   width: 100%;
   padding: 0.875rem 2rem;
-  background: linear-gradient(to right, #6b46c1, #2563eb);
+  background: linear-gradient(90deg, 
+    hsl(180, 100%, 50%) 0%,
+    hsl(280, 100%, 60%) 100%
+  );
   color: white;
   border-radius: 0.5rem;
   font-weight: 500;
@@ -86,6 +93,7 @@ const PrimaryButton = styled.a`
   position: relative;
   z-index: 1;
   overflow: hidden;
+  text-decoration: none;
   
   @media (min-width: 640px) {
     width: auto;
@@ -124,19 +132,30 @@ const SecondaryButton = styled.a`
   display: inline-block;
   width: 100%;
   padding: 0.875rem 2rem;
-  border: 1px solid #8b5cf6;
-  color: #c4b5fd;
+  border: 2px solid;
+  border-image: linear-gradient(90deg, 
+    hsl(180, 100%, 50%) 0%,
+    hsl(280, 100%, 60%) 100%
+  ) 1;
+  background: transparent;
+  color: hsl(180, 100%, 50%);
   border-radius: 0.5rem;
   font-weight: 500;
   font-size: 1.125rem;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  text-decoration: none;
   
   @media (min-width: 640px) {
     width: auto;
   }
   
   &:hover {
-    background-color: rgba(139, 92, 246, 0.1);
+    background: linear-gradient(90deg, 
+      hsl(180, 100%, 50%) 0%,
+      hsl(280, 100%, 60%) 100%
+    );
+    color: white;
+    transform: translateY(-2px);
   }
 `;
 
