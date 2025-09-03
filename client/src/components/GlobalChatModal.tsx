@@ -140,6 +140,13 @@ const ModalContainer = styled.div`
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(139, 92, 246, 0.3);
+
+  @media (max-width: 480px) {
+    width: 95%;
+    max-width: 95vw;
+    max-height: 85vh;
+    margin: 0.5rem;
+  }
 `;
 
 const ModalHeader = styled.div`
@@ -276,10 +283,14 @@ const InputArea = styled.div`
   background: rgba(30, 41, 59, 0.7);
   gap: 0.75rem;
   border-top: 1px solid rgba(139, 92, 246, 0.2);
+  min-height: 4.5rem; /* Garante altura mínima */
 
   @media (max-width: 480px) {
-    padding: 0.75rem;
+    padding: 0.75rem 0.5rem;
     gap: 0.5rem;
+    min-height: 4rem;
+    flex-wrap: nowrap; /* Evita quebra de linha */
+    overflow: visible; /* Garante que nada seja cortado */
   }
 `;
 
@@ -292,6 +303,7 @@ const ChatInput = styled.input`
   color: white;
   font-size: 1rem;
   outline: none;
+  min-width: 0; /* Permite que o input encolha quando necessário */
 
   &:focus {
     border-color: rgba(139, 92, 246, 0.6);
@@ -299,6 +311,12 @@ const ChatInput = styled.input`
 
   &::placeholder {
     color: rgba(255, 255, 255, 0.5);
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+    min-width: 120px; /* Largura mínima para o input no mobile */
   }
 `;
 
