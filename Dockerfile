@@ -43,6 +43,7 @@ COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/shared ./shared
 COPY --from=builder --chown=nodejs:nodejs /app/server ./server
 COPY --from=builder --chown=nodejs:nodejs /app/vite.config.ts ./vite.config.ts
+COPY --from=builder --chown=nodejs:nodejs /app/theme.json ./theme.json
 
 # Definir variáveis de ambiente
 ENV NODE_ENV=production
