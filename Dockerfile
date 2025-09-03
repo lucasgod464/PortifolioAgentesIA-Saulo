@@ -38,8 +38,8 @@ COPY package*.json ./
 # Instalar dependências necessárias incluindo algumas dev dependencies para produção
 RUN npm ci --include=dev && npm cache clean --force
 
-# Criar diretório client necessário
-RUN mkdir -p client
+# Criar diretórios necessários com permissões corretas
+RUN mkdir -p client node_modules/.vite && chown -R nodejs:nodejs node_modules
 
 # Copiar arquivos construídos do estágio anterior
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
@@ -52,6 +52,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/client/theme.json ./client/theme.
 # Definir variáveis de ambiente
 ENV NODE_ENV=production
 ENV PORT=5000
+
+# Garantir permissões corretas para diretórios que o Vite precisa escrever
+RUN chown -R nodejs:nodejs /app
 
 # Mudar para usuário não-root
 USER nodejs
