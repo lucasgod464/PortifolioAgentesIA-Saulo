@@ -22,51 +22,96 @@ export const useSessionId = () => {
   return sessionId;
 };
 
-// Hook para obter o logotipo da variável de ambiente
+// Hook para obter o logotipo da API em tempo real
 export const useLogoFromEnv = () => {
   const [logoUrl, setLogoUrl] = useState<string>('');
   
   useEffect(() => {
-    const envLogo = import.meta.env.VITE_LOGO_URL;
-    const defaultLogo = 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png';
-    
-    const logoSrc = envLogo || defaultLogo;
-    console.log('VITE_LOGO_URL ou URL padrão:', logoSrc);
-    setLogoUrl(logoSrc);
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          console.log('Logo obtida da API:', config.logoUrl);
+          setLogoUrl(config.logoUrl);
+        } else {
+          // Fallback se a API falhar
+          const defaultLogo = 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png';
+          console.log('Usando logo padrão (API falhou):', defaultLogo);
+          setLogoUrl(defaultLogo);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar config da API:', error);
+        // Fallback se der erro
+        const defaultLogo = 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png';
+        setLogoUrl(defaultLogo);
+      }
+    };
+
+    fetchConfig();
   }, []);
   
   return logoUrl;
 };
 
-// Hook para obter a URL do webhook da variável de ambiente
+// Hook para obter a URL do webhook da API em tempo real
 export const useWebhookUrl = () => {
   const [webhookUrl, setWebhookUrl] = useState<string>('');
   
   useEffect(() => {
-    const envWebhookUrl = import.meta.env.VITE_WEBHOOK_URL;
-    const defaultWebhookUrl = 'https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual';
-    
-    const finalWebhookUrl = envWebhookUrl || defaultWebhookUrl;
-    console.log('VITE_WEBHOOK_URL ou URL padrão:', finalWebhookUrl);
-    setWebhookUrl(finalWebhookUrl);
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          console.log('Webhook obtido da API:', config.webhookUrl);
+          setWebhookUrl(config.webhookUrl);
+        } else {
+          // Fallback se a API falhar
+          const defaultWebhookUrl = 'https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual';
+          setWebhookUrl(defaultWebhookUrl);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar config da API:', error);
+        const defaultWebhookUrl = 'https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual';
+        setWebhookUrl(defaultWebhookUrl);
+      }
+    };
+
+    fetchConfig();
   }, []);
   
   return webhookUrl;
 };
 
-// Hook para obter o link do WhatsApp da variável de ambiente
+// Hook para obter o link do WhatsApp da API em tempo real
 export const useWhatsAppLink = () => {
-  const [whatsappLink, setWhatsAppLink] = useState<string>('');
+  const [whatsappLink, setWhatsappLink] = useState<string>('');
   
   useEffect(() => {
-    const envWhatsAppNumber = import.meta.env.VITE_WHATSAPP_NUMBER;
-    const defaultWhatsAppNumber = '5544999998888';
-    
-    const whatsAppNumber = envWhatsAppNumber || defaultWhatsAppNumber;
-    const finalWhatsAppLink = `https://wa.me/${whatsAppNumber}`;
-    
-    console.log('VITE_WHATSAPP_NUMBER ou número padrão:', whatsAppNumber);
-    setWhatsAppLink(finalWhatsAppLink);
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          const finalWhatsAppLink = `https://wa.me/${config.whatsappNumber}`;
+          console.log('WhatsApp obtido da API:', config.whatsappNumber);
+          setWhatsappLink(finalWhatsAppLink);
+        } else {
+          // Fallback se a API falhar
+          const defaultWhatsAppNumber = '5544999998888';
+          const finalWhatsAppLink = `https://wa.me/${defaultWhatsAppNumber}`;
+          setWhatsappLink(finalWhatsAppLink);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar config da API:', error);
+        const defaultWhatsAppNumber = '5544999998888';
+        const finalWhatsAppLink = `https://wa.me/${defaultWhatsAppNumber}`;
+        setWhatsappLink(finalWhatsAppLink);
+      }
+    };
+
+    fetchConfig();
   }, []);
   
   return whatsappLink;
