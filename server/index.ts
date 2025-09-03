@@ -66,7 +66,10 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   try {
-    if (app.get("env") === "development") {
+    const isDev = process.env.NODE_ENV !== 'production';
+    log(`🔧 Modo: ${isDev ? 'desenvolvimento' : 'produção'}`);
+    
+    if (isDev) {
       await setupVite(app, server);
     } else {
       // Tenta primeiro usar a função resiliente
