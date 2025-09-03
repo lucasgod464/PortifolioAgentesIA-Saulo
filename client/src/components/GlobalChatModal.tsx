@@ -276,6 +276,11 @@ const InputArea = styled.div`
   background: rgba(30, 41, 59, 0.7);
   gap: 0.75rem;
   border-top: 1px solid rgba(139, 92, 246, 0.2);
+
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
 `;
 
 const ChatInput = styled.input`
@@ -309,9 +314,27 @@ const ActionButton = styled.button`
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Impede que os botões sejam comprimidos */
+  min-width: 2.5rem; /* Garante largura mínima */
 
   &:hover {
     transform: scale(1.1);
+  }
+
+  /* Responsividade para mobile */
+  @media (max-width: 480px) {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    font-size: 0.95rem;
+  }
+
+  /* Para telas muito pequenas */
+  @media (max-width: 360px) {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    font-size: 0.9rem;
   }
 `;
 
