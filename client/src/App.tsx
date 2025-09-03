@@ -7,7 +7,7 @@ import Home from "@/pages/Home";
 import GlobalChatModal from "./components/GlobalChatModal";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./hooks/use-auth";
-import { useFaviconFromEnv } from "./hooks/use-env-config";
+import { useFaviconFromEnv, useSiteTitleFromEnv } from "./hooks/use-env-config";
 
 // Admin pages
 import AdminIndexPage from "./pages/admin/index";
@@ -46,8 +46,9 @@ function Router() {
 }
 
 function App() {
-  // Aplicar favicon dinâmico baseado na configuração do ambiente
+  // Aplicar favicon e título dinâmicos baseados na configuração do ambiente
   useFaviconFromEnv();
+  useSiteTitleFromEnv();
 
   return (
     <QueryClientProvider client={queryClient}>

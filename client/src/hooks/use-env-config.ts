@@ -151,3 +151,29 @@ export const useFaviconFromEnv = () => {
     fetchConfig();
   }, []);
 };
+
+// Hook para gerenciar o título do site dinamicamente
+export const useSiteTitleFromEnv = () => {
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          console.log('Título obtido da API:', config.siteTitle);
+          
+          // Atualiza o título da página
+          document.title = config.siteTitle;
+        } else {
+          console.log('Erro ao obter título da API, mantendo o padrão');
+          document.title = 'NexusAI - Agentes de Inteligência Artificial';
+        }
+      } catch (error) {
+        console.error('Erro ao buscar título da API:', error);
+        document.title = 'NexusAI - Agentes de Inteligência Artificial';
+      }
+    };
+
+    fetchConfig();
+  }, []);
+};
