@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      # Variáveis de ambiente que serão configuradas no Easypanel
+      - DATABASE_URL=${DATABASE_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - VITE_LOGO_URL=${VITE_LOGO_URL}
+      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL}
+      - VITE_WHATSAPP_NUMBER=${VITE_WHATSAPP_NUMBER}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

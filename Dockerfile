@@ -1,140 +1,63 @@
-# Estágio de build
-FROM node:18-alpine AS builder
+# Usar Node.js 20 LTS para melhor compatibilidade
+FROM node:20-alpine AS builder
+
+# Instalar dependências do sistema necessárias
+RUN apk add --no-cache python3 make g++ git
 
 # Diretório de trabalho
 WORKDIR /app
 
-# Copiar package.json e package-lock.json
+# Copiar arquivos de dependências
 COPY package*.json ./
 
-# Instalar todas as dependências incluindo as de desenvolvimento
-RUN npm install
+# Instalar todas as dependências
+RUN npm ci --include=dev
 
-# Copiar o restante do código fonte
+# Copiar código fonte
 COPY . .
 
-# Compilar o frontend com npx 
-# O vite.config.ts está configurado para gerar os arquivos em dist/public
-RUN npx vite build
-
-# Criar arquivo pathResolver.ts se não existir
-RUN [ -f server/pathResolver.ts ] || echo 'import path from "path"; import fs from "fs"; export function getPublicDir() { return process.cwd(); }' > server/pathResolver.ts
-
-# Compilar o backend com npx - definindo vite como externo para evitar erros
-RUN npx esbuild server/index.ts server/db.ts server/storage.ts server/initializeDatabase.ts server/auth.ts server/routes.ts server/pathResolver.ts --platform=node --packages=external --external:vite --bundle --format=esm --outdir=dist
-
-# Compilar server/vite.ts separadamente para melhor compatibilidade
-RUN npx esbuild server/vite.ts --platform=node --packages=external --external:vite --bundle --format=esm --outdir=dist
-
-# Adicionar fallbacks para evitar erros de path.resolve
-RUN echo 'export const __dirname = process.cwd();' > dist/dirname-polyfill.js
-
-# Mostrar os arquivos gerados para debug
-RUN echo "Conteúdo do diretório dist:"
-RUN ls -la dist/
-RUN echo "Conteúdo do diretório dist/public:"
-RUN ls -la dist/public/
+# Build da aplicação
+RUN npm run build
 
 # Estágio de produção
-FROM node:18-alpine
+FROM node:20-alpine
 
-# Argumentos de build para variáveis de ambiente (preenchidos pelo comando docker build --build-arg)
-ARG VITE_LOGO_URL
-ARG VITE_WEBHOOK_URL
-ARG VITE_WHATSAPP_NUMBER
-ARG DB_HOST
-ARG DB_PORT
-ARG DB_USER
-ARG DB_PASSWORD
-ARG DB_NAME
-ARG DATABASE_URL
-ARG SESSION_SECRET
-ARG NODE_ENV=production
+# Instalar dependências do sistema para produção
+RUN apk add --no-cache dumb-init
 
-# Configurações de ambiente
-ENV NODE_ENV=${NODE_ENV}
-ENV PORT=5000
-ENV NODE_OPTIONS=--experimental-specifier-resolution=node
-
-# Definir variáveis do servidor para produção
-ENV SERVE_STATIC=true
-
-# Variáveis de ambiente da aplicação
-ENV VITE_LOGO_URL=${VITE_LOGO_URL:-https://meudominio.com/nomedaimagem.svg}
-ENV VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual}
-ENV VITE_WHATSAPP_NUMBER=${VITE_WHATSAPP_NUMBER:-5544999998888}
-
-# Variáveis de ambiente do banco de dados
-ENV DB_HOST=${DB_HOST}
-ENV DB_PORT=${DB_PORT}
-ENV DB_USER=${DB_USER}
-ENV DB_PASSWORD=${DB_PASSWORD}
-ENV DB_NAME=${DB_NAME}
-ENV DATABASE_URL=${DATABASE_URL}
-ENV SESSION_SECRET=${SESSION_SECRET:-chave_secreta_padrao_para_sessao}
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
 
 # Diretório de trabalho
 WORKDIR /app
 
-# Copiar package.json e package-lock.json
+# Copiar package.json para instalar apenas dependências de produção
 COPY package*.json ./
 
-# Instalar dependências de produção e também o Vite (necessário em tempo de execução)
-RUN npm install --production
-RUN npm install vite
+# Instalar apenas dependências de produção
+RUN npm ci --only=production && npm cache clean --force
 
-# Criar estrutura de diretórios necessária
-RUN mkdir -p dist/public server/public shared
+# Copiar arquivos construídos do estágio anterior
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/shared ./shared
 
-# Copiar arquivos compilados do estágio de build
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/shared ./shared
-COPY --from=builder /app/entrypoint.cjs ./entrypoint.cjs
-COPY --from=builder /app/entrypoint.mjs ./entrypoint.mjs
-COPY --from=builder /app/start-simple.js ./start-simple.js
+# Definir variáveis de ambiente
+ENV NODE_ENV=production
+ENV PORT=5000
 
-# Criar arquivos vazios de fallback para evitar erros de caminho
-RUN echo "{}" > ./server/package.json
-RUN echo "<!DOCTYPE html><html><head><title>App</title></head><body><div id='root'></div></body></html>" > ./dist/public/index.html
+# Mudar para usuário não-root
+USER nodejs
 
-# Garantir que a pasta server e arquivos relacionados existam
-COPY --from=builder /app/server/vite.ts ./server/vite.ts
-COPY --from=builder /app/server/pathResolver.ts ./server/pathResolver.ts
-COPY --from=builder /app/vite.config.ts ./vite.config.ts
-
-# Copiar todos os arquivos estáticos do build
-COPY --from=builder /app/dist/public ./dist/public
-
-# Adicionar arquivo .env para variáveis de ambiente (será sobrescrito pelos valores do container)
-RUN echo "DATABASE_URL=$DATABASE_URL" > .env
-RUN echo "SESSION_SECRET=$SESSION_SECRET" >> .env
-
-# Expor a porta padrão
+# Expor porta
 EXPOSE 5000
 
-# Instalar ts-node como fallback para inicialização alternativa
-RUN npm install -g ts-node typescript
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node --version || exit 1
 
-# Criar script shell para tentar diferentes entrypoints
-RUN echo '#!/bin/sh\n\
-echo "Tentando inicialização direta do index.js com Node.js..."\n\
-NODE_ENV=production node --experimental-specifier-resolution=node --experimental-modules --experimental-json-modules dist/index.js || {\n\
-  echo "Falha na inicialização direta, tentando com entrypoint.cjs..."\n\
-  node entrypoint.cjs || {\n\
-    echo "Falha com entrypoint.cjs, tentando com entrypoint.mjs..."\n\
-    node entrypoint.mjs || {\n\
-      echo "Falha com entrypoint.mjs, tentando inicialização com script simples..."\n\
-      node start-simple.js || {\n\
-        echo "Falha com script simples, tentando inicialização emergencial..."\n\
-        cd /app && npm install ts-node typescript -g && npx ts-node server/index.ts || {\n\
-          echo "Todas as tentativas falharam. Verifique os logs acima para detalhes."\n\
-          exit 1\n\
-        }\n\
-      }\n\
-    }\n\
-  }\n\
-}' > /app/start.sh
-RUN chmod +x /app/start.sh
+# Usar dumb-init para lidar com sinais corretamente
+ENTRYPOINT ["dumb-init", "--"]
 
-# Iniciar a aplicação com script shell que tenta múltiplos entrypoints
-CMD ["/app/start.sh"]
+# Comando para iniciar a aplicação
+CMD ["node", "dist/index.js"]

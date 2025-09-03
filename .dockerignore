@@ -1,43 +1,76 @@
-# Arquivos e pastas de desenvolvimento
+# Dependências
 node_modules
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-.git
-.github
-.vscode
-.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Arquivos de ambiente (exceto exemplos)
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-!.env.example
-
-# Arquivos de cache e build temporários
-.cache
-.parcel-cache
+# Build de desenvolvimento
 .next
 .nuxt
-# Não ignorar dist/ pois precisamos dele para o build
-build
-coverage
 
-# Arquivos de teste e documentação
+# Logs
+logs
+*.log
+
+# Arquivos de ambiente local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cache
+.npm
+.yarn-integrity
+.cache
+.parcel-cache
+.vite
+
+# Arquivos temporários
+.tmp
+tmp
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# IDEs e editores
+.vscode
+.idea
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose*
+.dockerignore
+
+# Documentação
+README.md
+*.md
+
+# Arquivos de teste
 test
 tests
 __tests__
 *.test.js
+*.test.ts
 *.spec.js
-README.md
-CHANGELOG.md
-LICENSE
-docs
+*.spec.ts
 
-# Outros arquivos específicos da aplicação
-Dockerfile
-docker-compose.yml
-.dockerignore
-.gitignore
+# Configuração de desenvolvimento
+.eslintrc*
+.prettierrc*
+jest.config.*
+
+# Arquivos do Replit
+.replit
+replit.nix
+
+# Arquivos anexados
+attached_assets
+
+# Estado local
+.local
