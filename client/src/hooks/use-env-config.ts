@@ -116,3 +116,38 @@ export const useWhatsAppLink = () => {
   
   return whatsappLink;
 };
+
+// Hook para gerenciar o favicon dinamicamente
+export const useFaviconFromEnv = () => {
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          console.log('Favicon obtido da API:', config.faviconUrl);
+          
+          // Remove favicon existente
+          const existingFavicon = document.querySelector('link[rel="icon"]') || 
+                                 document.querySelector('link[rel="shortcut icon"]');
+          if (existingFavicon) {
+            existingFavicon.remove();
+          }
+          
+          // Adiciona novo favicon
+          const link = document.createElement('link');
+          link.rel = 'icon';
+          link.type = 'image/x-icon';
+          link.href = config.faviconUrl;
+          document.head.appendChild(link);
+        } else {
+          console.log('Erro ao obter favicon da API, mantendo o padrão');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar favicon da API:', error);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+};

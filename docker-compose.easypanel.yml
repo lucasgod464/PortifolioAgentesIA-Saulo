@@ -15,6 +15,7 @@ services:
       - SESSION_SECRET=${SESSION_SECRET}
       # Configurações dinâmicas (agora obtidas via API em tempo real)
       - VITE_LOGO_URL=${VITE_LOGO_URL}
+      - VITE_FAVICON_URL=${VITE_FAVICON_URL}
       - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL}
       - VITE_WHATSAPP_NUMBER=${VITE_WHATSAPP_NUMBER}
     restart: unless-stopped

@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import GlobalChatModal from "./components/GlobalChatModal";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./hooks/use-auth";
+import { useFaviconFromEnv } from "./hooks/use-env-config";
 
 // Admin pages
 import AdminIndexPage from "./pages/admin/index";
@@ -45,6 +46,9 @@ function Router() {
 }
 
 function App() {
+  // Aplicar favicon dinâmico baseado na configuração do ambiente
+  useFaviconFromEnv();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
