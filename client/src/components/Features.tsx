@@ -6,7 +6,11 @@ const FeaturesSection = styled.section`
   position: relative;
   z-index: 10;
   padding: 4rem 1rem;
-  background: linear-gradient(to bottom, #0f172a, #1a2151);
+  background: linear-gradient(135deg, 
+    hsl(220, 30%, 8%) 0%,
+    hsl(240, 40%, 12%) 50%,
+    hsl(260, 30%, 10%) 100%
+  );
   
   @media (min-width: 768px) {
     padding: 4rem 2rem;
@@ -41,7 +45,10 @@ const SectionTitle = styled.h2`
 const Divider = styled.div`
   height: 0.25rem;
   width: 6rem;
-  background: linear-gradient(to right, #6b46c1, #2563eb);
+  background: linear-gradient(90deg, 
+    hsl(180, 100%, 50%) 0%,
+    hsl(280, 100%, 60%) 100%
+  );
   margin: 0 auto 1.5rem;
 `;
 
@@ -69,7 +76,7 @@ const FeatureCard = styled.div`
   text-align: center;
   padding: 1.5rem;
   border-radius: 0.75rem;
-  background: rgba(30, 58, 138, 0.5);
+  background: rgba(22, 27, 58, 0.8);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(139, 92, 246, 0.2);
 `;
@@ -78,7 +85,10 @@ const IconContainer = styled.div`
   width: 4rem;
   height: 4rem;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(to bottom right, rgba(139, 92, 246, 0.2), rgba(37, 99, 235, 0.2));
+  background: linear-gradient(135deg, 
+    rgba(0, 255, 255, 0.2) 0%,
+    rgba(168, 85, 247, 0.2) 100%
+  );
   border-radius: 0.75rem;
   display: flex;
   align-items: center;
@@ -87,7 +97,13 @@ const IconContainer = styled.div`
 
 const Icon = styled.i`
   font-size: 1.875rem;
-  color: #c4b5fd;
+  background: linear-gradient(90deg, 
+    hsl(180, 100%, 70%) 0%,
+    hsl(280, 100%, 70%) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 `;
 
 const FeatureTitle = styled.h3`

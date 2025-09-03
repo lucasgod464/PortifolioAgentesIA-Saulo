@@ -26,7 +26,14 @@ const CTACard = styled.div`
   border-radius: 1rem;
   overflow: hidden;
   padding: 2rem;
-  background: linear-gradient(to bottom right, #1e3a8a, #1a2151);
+  background: linear-gradient(135deg, 
+    hsl(220, 30%, 8%) 0%,
+    hsl(240, 40%, 12%) 50%,
+    hsl(260, 30%, 10%) 100%
+  );
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
   border: 1px solid rgba(139, 92, 246, 0.3);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
@@ -88,7 +95,10 @@ const PrimaryButton = styled.a`
   display: inline-block;
   width: 100%;
   padding: 0.875rem 2rem;
-  background: linear-gradient(to right, #6b46c1, #2563eb);
+  background: linear-gradient(90deg, 
+    hsl(180, 100%, 50%) 0%,
+    hsl(280, 100%, 60%) 100%
+  );
   color: white;
   border-radius: 0.5rem;
   font-weight: 500;
@@ -97,13 +107,15 @@ const PrimaryButton = styled.a`
   position: relative;
   z-index: 1;
   overflow: hidden;
+  text-decoration: none;
   
   @media (min-width: 640px) {
     width: auto;
   }
   
   &:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 200, 255, 0.3);
   }
   
   &:after {
@@ -113,7 +125,7 @@ const PrimaryButton = styled.a`
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(transparent, rgba(139, 92, 246, 0.1), transparent);
+    background: linear-gradient(transparent, rgba(0, 255, 255, 0.15), transparent);
     opacity: 0;
     transform: rotate(30deg);
     transition: opacity 0.3s ease;
@@ -135,7 +147,12 @@ const SecondaryButton = styled.a`
   display: inline-block;
   width: 100%;
   padding: 0.875rem 2rem;
-  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid;
+  border-image: linear-gradient(90deg, 
+    hsl(180, 100%, 50%) 0%,
+    hsl(280, 100%, 60%) 100%
+  ) 1;
+  background: transparent;
   color: white;
   border-radius: 0.5rem;
   font-weight: 500;
@@ -147,7 +164,12 @@ const SecondaryButton = styled.a`
   }
   
   &:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(90deg, 
+      hsl(180, 100%, 50%) 0%,
+      hsl(280, 100%, 60%) 100%
+    );
+    color: white;
+    transform: translateY(-2px);
   }
 `;
 
