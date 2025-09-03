@@ -174,7 +174,7 @@ const Footer: React.FC = () => {
 
         <BottomBar>
           <Copyright>
-            <span className="font-normal">© {currentYear} NexusAI. Tod os os direitos reservados.</span>
+            <span className="font-normal">© {currentYear} NexusAI. Todos os direitos reservados.</span>
             <SocialLinks>
               <SocialLink href="#" aria-label="Twitter">
                 <i className="fab fa-twitter"></i>
