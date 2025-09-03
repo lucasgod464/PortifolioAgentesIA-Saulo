@@ -32,15 +32,17 @@ RUN adduser -S nodejs -u 1001
 # Diretório de trabalho
 WORKDIR /app
 
-# Copiar package.json para instalar apenas dependências de produção
+# Copiar package.json para instalar dependências necessárias
 COPY package*.json ./
 
-# Instalar apenas dependências de produção
-RUN npm ci --only=production && npm cache clean --force
+# Instalar dependências necessárias incluindo algumas dev dependencies para produção
+RUN npm ci --include=dev && npm cache clean --force
 
 # Copiar arquivos construídos do estágio anterior
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/shared ./shared
+COPY --from=builder --chown=nodejs:nodejs /app/server ./server
+COPY --from=builder --chown=nodejs:nodejs /app/vite.config.ts ./vite.config.ts
 
 # Definir variáveis de ambiente
 ENV NODE_ENV=production
