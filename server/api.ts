@@ -201,13 +201,31 @@ export function setupApiRoutes(app: Express) {
   // Rota para retornar configurações do ambiente em tempo real
   app.get("/api/config", (req, res) => {
     try {
+      // Função para criar configuração de agente a partir de variáveis de ambiente
+      const createAgentConfig = (id: number) => {
+        const envPrefix = `VITE_AGENT_${id}`;
+        return {
+          id,
+          visible: process.env[`${envPrefix}_VISIBLE`] !== 'false', // Por padrão visível, exceto se explicitamente false
+          icon: process.env[`${envPrefix}_ICON`],
+          title: process.env[`${envPrefix}_TITLE`],
+          description: process.env[`${envPrefix}_DESCRIPTION`],
+          initialMessage: process.env[`${envPrefix}_INITIAL_MESSAGE`],
+          webhookName: process.env[`${envPrefix}_WEBHOOK_NAME`]
+        };
+      };
+
+      // Configurações dos 12 agentes
+      const agents = Array.from({ length: 12 }, (_, i) => createAgentConfig(i + 1));
+
       const config = {
         logoUrl: process.env.VITE_LOGO_URL || 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png',
         faviconUrl: process.env.VITE_FAVICON_URL || 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png',
         webhookUrl: process.env.VITE_WEBHOOK_URL || 'https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual',
         whatsappNumber: process.env.VITE_WHATSAPP_NUMBER || '5544999998888',
         siteTitle: process.env.VITE_SITE_TITLE || 'NexusAI - Agentes de Inteligência Artificial',
-        logoLink: process.env.VITE_LOGO_LINK || '/'
+        logoLink: process.env.VITE_LOGO_LINK || '/',
+        agents
       };
       res.json(config);
     } catch (error) {

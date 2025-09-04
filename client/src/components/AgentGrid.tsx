@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import AgentCard from './AgentCard';
 import { agents } from '../data/agents';
+import { useAgentsFromEnv, AgentConfig } from '../hooks/use-env-config';
 
 const AgentSection = styled.section`
   position: relative;
@@ -75,6 +76,45 @@ const AgentGridContainer = styled.div`
 `;
 
 const AgentGrid: React.FC = () => {
+  const { agents: configuredAgents, loading } = useAgentsFromEnv();
+
+  // Função para mesclar configurações do env com dados padrão
+  const getDisplayAgents = () => {
+    return agents.map((defaultAgent) => {
+      const envConfig = configuredAgents.find(config => config.id === defaultAgent.id);
+      
+      // Se não está visível na configuração do ambiente, pula este agente
+      if (envConfig && !envConfig.visible) {
+        return null;
+      }
+      
+      // Mescla dados padrão com configurações do ambiente
+      return {
+        id: defaultAgent.id,
+        icon: envConfig?.icon || defaultAgent.icon,
+        title: envConfig?.title || defaultAgent.title,
+        description: envConfig?.description || defaultAgent.description,
+        initialMessage: envConfig?.initialMessage || `Olá! Sou o ${defaultAgent.title}. Como posso ajudar você hoje?`,
+        webhookName: envConfig?.webhookName || defaultAgent.title
+      };
+    }).filter(Boolean); // Remove agentes null (não visíveis)
+  };
+
+  const displayAgents = getDisplayAgents();
+
+  if (loading) {
+    return (
+      <AgentSection id="agents">
+        <SectionContainer>
+          <SectionHeader>
+            <SectionTitle>Carregando Agentes...</SectionTitle>
+            <Divider />
+          </SectionHeader>
+        </SectionContainer>
+      </AgentSection>
+    );
+  }
+
   return (
     <AgentSection id="agents">
       <SectionContainer>
@@ -88,14 +128,19 @@ const AgentGrid: React.FC = () => {
         </SectionHeader>
         
         <AgentGridContainer>
-          {agents.map((agent) => (
-            <AgentCard 
-              key={agent.id}
-              icon={agent.icon}
-              title={agent.title}
-              description={agent.description}
-            />
-          ))}
+          {displayAgents.map((agent) => {
+            if (!agent) return null;
+            return (
+              <AgentCard 
+                key={agent.id}
+                icon={agent.icon}
+                title={agent.title}
+                description={agent.description}
+                initialMessage={agent.initialMessage}
+                webhookName={agent.webhookName}
+              />
+            );
+          })}
         </AgentGridContainer>
       </SectionContainer>
     </AgentSection>

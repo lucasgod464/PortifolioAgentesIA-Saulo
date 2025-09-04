@@ -6,6 +6,8 @@ interface AgentCardProps {
   icon: string;
   title: string;
   description: string;
+  initialMessage?: string;
+  webhookName?: string;
 }
 
 const Card = styled.div`
@@ -142,12 +144,12 @@ const Button = styled.a`
   }
 `;
 
-const AgentCard: React.FC<AgentCardProps> = ({ icon, title, description }) => {
+const AgentCard: React.FC<AgentCardProps> = ({ icon, title, description, initialMessage, webhookName }) => {
   const { openModal } = useChatModal();
   
   const handleOpenModal = (e: React.MouseEvent) => {
     e.preventDefault();
-    openModal(title, icon);
+    openModal(title, icon, initialMessage, webhookName);
   };
   
   return (

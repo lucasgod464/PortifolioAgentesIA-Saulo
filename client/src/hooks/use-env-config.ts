@@ -206,3 +206,46 @@ export const useLogoLinkFromEnv = () => {
   
   return logoLink;
 };
+
+// Interface para configuração de agentes
+export interface AgentConfig {
+  id: number;
+  visible: boolean;
+  icon?: string;
+  title?: string;
+  description?: string;
+  initialMessage?: string;
+  webhookName?: string;
+}
+
+// Hook para obter configurações dos agentes da API em tempo real
+export const useAgentsFromEnv = () => {
+  const [agents, setAgents] = useState<AgentConfig[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const config = await response.json();
+          console.log('Configurações dos agentes obtidas da API:', config.agents);
+          setAgents(config.agents || []);
+        } else {
+          // Fallback se a API falhar - usando configurações padrão
+          console.log('Erro ao obter configurações dos agentes da API, usando padrão');
+          setAgents([]);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar configurações dos agentes da API:', error);
+        setAgents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+  
+  return { agents, loading };
+};

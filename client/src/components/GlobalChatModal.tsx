@@ -11,6 +11,8 @@ export class ChatModalManager {
   private isOpen: boolean = false;
   private agentName: string = "";
   private agentIcon: string = "";
+  private initialMessage: string = "";
+  private webhookName: string = "";
   private listeners: Function[] = [];
 
   private constructor() {}
@@ -22,10 +24,12 @@ export class ChatModalManager {
     return ChatModalManager.instance;
   }
 
-  openModal(agentName: string, agentIcon: string): void {
+  openModal(agentName: string, agentIcon: string, initialMessage?: string, webhookName?: string): void {
     this.isOpen = true;
     this.agentName = agentName;
     this.agentIcon = agentIcon;
+    this.initialMessage = initialMessage || `Olá! Sou o ${agentName}. Como posso ajudar você hoje?`;
+    this.webhookName = webhookName || agentName;
     this.notifyListeners();
   }
 
@@ -34,11 +38,13 @@ export class ChatModalManager {
     this.notifyListeners();
   }
 
-  getState(): { isOpen: boolean; agentName: string; agentIcon: string } {
+  getState(): { isOpen: boolean; agentName: string; agentIcon: string; initialMessage: string; webhookName: string } {
     return {
       isOpen: this.isOpen,
       agentName: this.agentName,
       agentIcon: this.agentIcon,
+      initialMessage: this.initialMessage,
+      webhookName: this.webhookName,
     };
   }
 
@@ -60,10 +66,14 @@ export function useChatModal() {
     isOpen: boolean;
     agentName: string;
     agentIcon: string;
+    initialMessage: string;
+    webhookName: string;
   }>({
     isOpen: false,
     agentName: "",
     agentIcon: "",
+    initialMessage: "",
+    webhookName: "",
   });
 
   useEffect(() => {
@@ -77,8 +87,8 @@ export function useChatModal() {
     return unsubscribe;
   }, []);
 
-  const openModal = (agentName: string, agentIcon: string) => {
-    ChatModalManager.getInstance().openModal(agentName, agentIcon);
+  const openModal = (agentName: string, agentIcon: string, initialMessage?: string, webhookName?: string) => {
+    ChatModalManager.getInstance().openModal(agentName, agentIcon, initialMessage, webhookName);
   };
 
   const closeModal = () => {
@@ -769,7 +779,7 @@ const useAudioRecorder = () => {
 
 // Componente principal GlobalChatModal
 const GlobalChatModal: React.FC = () => {
-  const { isOpen, agentName, agentIcon, closeModal } = useChatModal();
+  const { isOpen, agentName, agentIcon, initialMessage, webhookName, closeModal } = useChatModal();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -797,7 +807,7 @@ const GlobalChatModal: React.FC = () => {
       setMessages([
         {
           id: 1,
-          text: `Olá! Eu sou o assistente virtual para ${agentName}. Como posso ajudar você hoje?`,
+          text: initialMessage || `Olá! Eu sou o assistente virtual para ${agentName}. Como posso ajudar você hoje?`,
           isUser: false,
           time: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -809,7 +819,7 @@ const GlobalChatModal: React.FC = () => {
       ]);
       messageIdCounter.current = 2;
     }
-  }, [isOpen, agentName]);
+  }, [isOpen, agentName, initialMessage]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -853,7 +863,7 @@ const GlobalChatModal: React.FC = () => {
 
     // Prepara o payload para o webhook
     const webhookPayload = {
-      agent: slugifyAgentName(agentName),
+      agent: slugifyAgentName(webhookName),
       message: audioBase64,
       typeMessage: "audio",
       sessionId: sessionId,
@@ -1034,7 +1044,7 @@ const GlobalChatModal: React.FC = () => {
 
     // Prepara o formato do payload para o webhook
     const webhookPayload = {
-      agent: slugifyAgentName(agentName),
+      agent: slugifyAgentName(webhookName),
       message: inputValue,
       typeMessage: "text",
       sessionId: sessionId,
