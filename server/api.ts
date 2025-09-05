@@ -215,8 +215,12 @@ export function setupApiRoutes(app: Express) {
         };
       };
 
-      // Configurações dos 12 agentes
-      const agents = Array.from({ length: 12 }, (_, i) => createAgentConfig(i + 1));
+      // Configurações dos agentes (até 20)
+      const agents = Array.from({ length: 20 }, (_, i) => createAgentConfig(i + 1))
+        .filter(agent => 
+          // Filtra apenas agentes que têm pelo menos uma configuração definida ou são explicitamente visíveis
+          agent.visible || agent.icon || agent.title || agent.description || agent.initialMessage || agent.webhookName
+        );
 
       const config = {
         logoUrl: process.env.VITE_LOGO_URL || 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png',
