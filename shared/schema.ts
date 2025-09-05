@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, bigserial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -58,6 +58,34 @@ export const insertAgentPromptSchema = createInsertSchema(agentPrompts).pick({
   isActive: true,
 });
 
+// Tabela de assistentes portfolio
+export const assistantsPortfolio = pgTable("assistants_portfolio", {
+  id: text("id").primaryKey(),
+  nomeAgente: text("nome_agente").notNull(),
+  promptAgente: text("prompt_agente"),
+  assistantId: text("assistant_id"),
+  model: text("model"),
+  tools: text("tools"),
+  temperatura: text("temperatura"),
+});
+
+// Tabela de leads portfolio
+export const leadsPortfolio = pgTable("leads_portfolio", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  sessionID: text("sessionID"),
+  timestamp: text("timestamp"),
+  threadId: text("thread_id"),
+  possuiThreadId: boolean("possui_thread_id"),
+  nomeCompleto: text("nome_completo"),
+  telefone: text("telefone"),
+});
+
+// Schemas para inserção das novas tabelas
+export const insertAssistantsPortfolioSchema = createInsertSchema(assistantsPortfolio);
+export const insertLeadsPortfolioSchema = createInsertSchema(leadsPortfolio).omit({
+  id: true, // Remove ID pois é auto-gerado
+});
+
 // Tipos para TypeScript
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -67,3 +95,9 @@ export type Agent = typeof agents.$inferSelect;
 
 export type InsertAgentPrompt = z.infer<typeof insertAgentPromptSchema>;
 export type AgentPrompt = typeof agentPrompts.$inferSelect;
+
+export type InsertAssistantsPortfolio = z.infer<typeof insertAssistantsPortfolioSchema>;
+export type AssistantsPortfolio = typeof assistantsPortfolio.$inferSelect;
+
+export type InsertLeadsPortfolio = z.infer<typeof insertLeadsPortfolioSchema>;
+export type LeadsPortfolio = typeof leadsPortfolio.$inferSelect;
