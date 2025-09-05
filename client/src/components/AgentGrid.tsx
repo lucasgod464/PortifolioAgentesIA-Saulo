@@ -80,22 +80,23 @@ const AgentGrid: React.FC = () => {
 
   // Função para mesclar configurações do env com dados padrão
   const getDisplayAgents = () => {
-    return agents.map((defaultAgent) => {
-      const envConfig = configuredAgents.find(config => config.id === defaultAgent.id);
-      
+    return configuredAgents.map((envConfig) => {
       // Se não está visível na configuração do ambiente, pula este agente
-      if (envConfig && !envConfig.visible) {
+      if (!envConfig.visible) {
         return null;
       }
       
+      // Busca dados padrão se existir
+      const defaultAgent = agents.find(agent => agent.id === envConfig.id);
+      
       // Mescla dados padrão com configurações do ambiente
       return {
-        id: defaultAgent.id,
-        icon: envConfig?.icon || defaultAgent.icon,
-        title: envConfig?.title || defaultAgent.title,
-        description: envConfig?.description || defaultAgent.description,
-        initialMessage: envConfig?.initialMessage || `Olá! Sou o ${defaultAgent.title}. Como posso ajudar você hoje?`,
-        webhookName: envConfig?.webhookName || defaultAgent.title
+        id: envConfig.id,
+        icon: envConfig.icon || defaultAgent?.icon || "fas fa-robot",
+        title: envConfig.title || defaultAgent?.title || `Agente ${envConfig.id}`,
+        description: envConfig.description || defaultAgent?.description || "Agente especializado em resolver suas necessidades específicas.",
+        initialMessage: envConfig.initialMessage || (defaultAgent ? `Olá! Sou o ${defaultAgent.title}. Como posso ajudar você hoje?` : `Olá! Sou o Agente ${envConfig.id}. Como posso ajudar você hoje?`),
+        webhookName: envConfig.webhookName || defaultAgent?.title || `Agente ${envConfig.id}`
       };
     }).filter(Boolean); // Remove agentes null (não visíveis)
   };
