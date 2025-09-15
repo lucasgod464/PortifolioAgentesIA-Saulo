@@ -153,6 +153,8 @@ interface AgentFormData {
   title: string;
   description: string;
   icon: string;
+  initialMessage?: string;
+  webhookName?: string;
 }
 
 export default function AgentsPage() {
@@ -161,6 +163,8 @@ export default function AgentsPage() {
     title: '',
     description: '',
     icon: 'fas fa-robot',
+    initialMessage: '',
+    webhookName: '',
   });
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
@@ -270,7 +274,11 @@ export default function AgentsPage() {
   };
 
   const handleEdit = (agent: Agent) => {
-    setFormData(agent);
+    setFormData({
+      ...agent,
+      initialMessage: agent.initialMessage || '',
+      webhookName: agent.webhookName || '',
+    });
     setIsEditing(true);
     setIsDialogOpen(true);
   };
@@ -286,6 +294,8 @@ export default function AgentsPage() {
       title: '',
       description: '',
       icon: 'fas fa-robot',
+      initialMessage: '',
+      webhookName: '',
     });
     setIsEditing(false);
   };
@@ -419,6 +429,29 @@ export default function AgentsPage() {
                 <i className={formData.icon}></i>
                 <span>Prévia do ícone</span>
               </IconPreview>
+            </FormGroup>
+
+            <FormGroup>
+              <Label htmlFor="initialMessage">Mensagem Inicial (Opcional)</Label>
+              <Textarea
+                id="initialMessage"
+                name="initialMessage"
+                value={formData.initialMessage || ''}
+                onChange={handleInputChange}
+                placeholder="Ex: Olá! Sou o Agente Financeiro. Posso ajudar com análises, investimentos e planejamento financeiro. Como posso ajudar?"
+                rows={3}
+              />
+            </FormGroup>
+            
+            <FormGroup>
+              <Label htmlFor="webhookName">Nome do Webhook (Opcional)</Label>
+              <Input
+                id="webhookName"
+                name="webhookName"
+                value={formData.webhookName || ''}
+                onChange={handleInputChange}
+                placeholder="Ex: Agente Financeiro"
+              />
             </FormGroup>
             
             <DialogFooter>
