@@ -218,7 +218,7 @@ export interface AgentConfig {
   webhookName?: string;
 }
 
-// Hook para obter configurações dos agentes da API em tempo real
+// Hook para obter configurações dos agentes da API em tempo real (LEGACY - usar useAgentsFromDatabase)
 export const useAgentsFromEnv = () => {
   const [agents, setAgents] = useState<AgentConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -248,4 +248,46 @@ export const useAgentsFromEnv = () => {
   }, []);
   
   return { agents, loading };
+};
+
+// Interface para agentes do banco de dados
+export interface DatabaseAgent {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  createdAt: string;
+}
+
+// Hook para obter agentes diretamente do banco de dados
+export const useAgentsFromDatabase = () => {
+  const [agents, setAgents] = useState<DatabaseAgent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await fetch('/api/agents');
+        if (response.ok) {
+          const agentsData = await response.json();
+          console.log('Agentes obtidos do banco de dados:', agentsData);
+          setAgents(agentsData || []);
+          setError(null);
+        } else {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar agentes do banco de dados:', error);
+        setError('Erro ao carregar agentes');
+        setAgents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgents();
+  }, []);
+  
+  return { agents, loading, error };
 };
