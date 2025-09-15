@@ -50,7 +50,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   isAdmin: true,
 });
 
-export const insertAgentSchema = createInsertSchema(agents);
+export const insertAgentSchema = createInsertSchema(agents).omit({
+  id: true,
+  createdAt: true,
+});
 
 export const insertAgentPromptSchema = createInsertSchema(agentPrompts).pick({
   agentId: true,
