@@ -2,36 +2,85 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
 import dotenv from "dotenv";
+import { loadDbCredentials, buildDatabaseUrl } from "./dbCredentials";
 
 // Carrega as variáveis de ambiente do arquivo .env
 dotenv.config();
 
-// Configurações de conexão para o banco de dados PostgreSQL local no Replit
-console.log("🔧 Conectando ao banco de dados PostgreSQL local no Replit...");
+// Variáveis exportadas que serão inicializadas
+export let pool: Pool;
+export let db: ReturnType<typeof drizzle>;
 
-// Verificar se temos a variável de ambiente do banco de dados
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL não encontrada. Certifique-se de que o banco de dados PostgreSQL está provisionado.",
+// Flag para rastrear se já foi inicializado
+let dbInitialized = false;
+
+/**
+ * Inicializa o banco de dados carregando credenciais e criando conexões
+ */
+export async function initializeDbConnection(): Promise<void> {
+  if (dbInitialized) {
+    console.log("🔄 Conexão de banco já inicializada.");
+    return;
+  }
+
+  console.log("🔧 Conectando ao banco de dados PostgreSQL local no Replit...");
+
+  // Tenta carregar credenciais criptografadas primeiro
+  let finalDatabaseUrl = process.env.DATABASE_URL;
+  let sourceInfo = "variáveis de ambiente";
+
+  try {
+    const dbConfig = await loadDbCredentials();
+    if (dbConfig) {
+      finalDatabaseUrl = buildDatabaseUrl(dbConfig);
+      sourceInfo = "credenciais criptografadas";
+      console.log("🔒 Carregando configurações do banco a partir de credenciais criptografadas...");
+      
+      // Atualiza a variável de ambiente para compatibilidade
+      process.env.DATABASE_URL = finalDatabaseUrl;
+    }
+  } catch (error) {
+    console.warn("⚠️ Não foi possível carregar credenciais criptografadas, usando variáveis de ambiente:", error);
+  }
+
+  // Verificar se temos uma DATABASE_URL válida
+  if (!finalDatabaseUrl) {
+    throw new Error(
+      "DATABASE_URL não encontrada. Certifique-se de que o banco de dados PostgreSQL está provisionado ou configure credenciais via interface admin.",
+    );
+  }
+
+  console.log(
+    `✅ DATABASE_URL encontrada (${sourceInfo}):`,
+    "***" + finalDatabaseUrl.substring(finalDatabaseUrl.indexOf("@")),
   );
-}
-console.log(
-  "✅ DATABASE_URL encontrada:",
-  "***" +
-    process.env.DATABASE_URL.substring(process.env.DATABASE_URL.indexOf("@")),
-);
-// Usar as variáveis de ambiente fornecidas pelo Replit
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
 
-// Evento para monitorar erros na pool de conexões
-pool.on("error", (err) => {
-  console.error("❌ Erro inesperado no pool de conexões:", err.message);
-});
-console.log("✅ Pool de conexões configurado com sucesso!");
-// Criação da instância Drizzle
-export const db = drizzle(pool, { schema });
+  // Criar pool de conexões
+  pool = new Pool({
+    connectionString: finalDatabaseUrl,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
+
+  // Evento para monitorar erros na pool de conexões
+  pool.on("error", (err) => {
+    console.error("❌ Erro inesperado no pool de conexões:", err.message);
+  });
+
+  console.log(`✅ Pool de conexões configurado com sucesso usando ${sourceInfo}!`);
+
+  // Criação da instância Drizzle
+  db = drizzle(pool, { schema });
+  
+  dbInitialized = true;
+}
+
+/**
+ * Garante que a conexão está inicializada antes de usar
+ */
+export async function ensureDbConnection(): Promise<void> {
+  if (!dbInitialized) {
+    await initializeDbConnection();
+  }
+}

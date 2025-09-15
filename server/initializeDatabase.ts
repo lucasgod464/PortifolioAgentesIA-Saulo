@@ -1,9 +1,8 @@
-import { db, pool } from './db';
+import { db, pool, initializeDbConnection } from './db';
 import { sql } from 'drizzle-orm';
 import { users, agents, agentPrompts } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword } from './auth';
-import { loadDbCredentials, buildDatabaseUrl } from './dbCredentials';
 
 // Variável para indicar se já tentamos inicializar o banco
 let databaseInitialized = false;
@@ -157,45 +156,11 @@ async function seedInitialData() {
 async function connectWithRetry(maxRetries = 10, retryDelay = 3000): Promise<boolean> {
   let retries = 0;
   
-  // Verifica se existem credenciais criptografadas
-  let dbConfig = null;
-  let sourceInfo = "variáveis de ambiente";
-  
-  try {
-    dbConfig = await loadDbCredentials();
-    if (dbConfig) {
-      sourceInfo = "credenciais criptografadas";
-      console.log('🔒 Carregando configurações do banco a partir de credenciais criptografadas...');
-      
-      // Atualiza a DATABASE_URL se as credenciais foram carregadas
-      const newDatabaseUrl = buildDatabaseUrl(dbConfig);
-      process.env.DATABASE_URL = newDatabaseUrl;
-      
-      console.log('🔍 Tentando conectar ao banco de dados com credenciais criptografadas:');
-      console.log(`- HOST: ${dbConfig.host}`);
-      console.log(`- PORT: ${dbConfig.port}`);
-      console.log(`- USER: ${dbConfig.user}`);
-      console.log(`- DATABASE: ${dbConfig.database}`);
-      console.log(`- SESSION_TABLE: ${dbConfig.sessionTable}`);
-    } else {
-      console.log('🔍 Tentando conectar ao banco de dados com variáveis de ambiente:');
-      console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '***' + process.env.DATABASE_URL.substring(process.env.DATABASE_URL.indexOf('@')) : 'não definido'}`);
-      console.log(`- DB_HOST: ${process.env.DB_HOST || 'não definido'}`);
-      console.log(`- DB_PORT: ${process.env.DB_PORT || 'não definido'}`);
-      console.log(`- DB_USER: ${process.env.DB_USER || 'não definido'}`);
-      console.log(`- DB_NAME: ${process.env.DB_NAME || 'não definido'}`);
-    }
-  } catch (error) {
-    console.warn('⚠️ Não foi possível carregar credenciais criptografadas, usando variáveis de ambiente:', error);
-    console.log('🔍 Tentando conectar ao banco de dados com variáveis de ambiente:');
-    console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '***' + process.env.DATABASE_URL.substring(process.env.DATABASE_URL.indexOf('@')) : 'não definido'}`);
-  }
-  
   while (retries < maxRetries) {
     try {
       // Tenta uma consulta simples para verificar a conexão
       await pool.query('SELECT NOW()');
-      console.log(`✅ Conexão com o banco de dados estabelecida usando ${sourceInfo}!`);
+      console.log('✅ Conexão com o banco de dados estabelecida!');
       return true;
     } catch (error: any) {
       retries++;
@@ -211,7 +176,7 @@ async function connectWithRetry(maxRetries = 10, retryDelay = 3000): Promise<boo
       }
       
       if (retries >= maxRetries) {
-        console.error(`❌ Número máximo de tentativas atingido. Não foi possível conectar ao banco de dados usando ${sourceInfo}.`);
+        console.error('❌ Número máximo de tentativas atingido. Não foi possível conectar ao banco de dados.');
         return false;
       }
       
@@ -238,7 +203,10 @@ export async function initializeDatabase() {
   try {
     console.log('🔍 Verificando banco de dados...');
     
-    // Primeiro tenta conectar ao banco
+    // Primeiro inicializa a conexão (carrega credenciais criptografadas se existirem)
+    await initializeDbConnection();
+    
+    // Depois tenta conectar ao banco
     const connected = await connectWithRetry();
     if (!connected) {
       console.error('❌ Não foi possível conectar ao banco de dados após várias tentativas.');
@@ -256,7 +224,7 @@ export async function initializeDatabase() {
   } catch (error: any) {
     console.error('❌ Falha ao inicializar banco de dados:', error);
     console.error('Detalhes do erro:', error instanceof Error ? error.message : String(error));
-    console.error('Verifique se as variáveis de ambiente DATABASE_URL, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD e DB_NAME estão configuradas corretamente.');
+    console.error('Verifique se as configurações de banco estão corretas ou configure credenciais via interface admin.');
     
     // Não lança exceção para permitir que o servidor continue funcionando com operações que não precisam do banco
     // O banco tentará se reconectar nas próximas solicitações

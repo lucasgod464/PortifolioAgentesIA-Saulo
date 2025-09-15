@@ -13,6 +13,7 @@ interface EncryptedData {
   ciphertext: string;
   iv: string;
   tag: string;
+  salt: string;
 }
 
 interface StoredCredentials {
@@ -37,10 +38,7 @@ async function encryptCredentials(credentials: DbConfig, masterKey: string): Pro
   
   const cipher = createCipheriv('aes-256-gcm', key, iv);
   
-  const plaintext = JSON.stringify({
-    ...credentials,
-    salt: salt.toString('hex')
-  });
+  const plaintext = JSON.stringify(credentials);
   
   let ciphertext = cipher.update(plaintext, 'utf8', 'hex');
   ciphertext += cipher.final('hex');
@@ -50,7 +48,8 @@ async function encryptCredentials(credentials: DbConfig, masterKey: string): Pro
   return {
     ciphertext,
     iv: iv.toString('hex'),
-    tag: tag.toString('hex')
+    tag: tag.toString('hex'),
+    salt: salt.toString('hex')
   };
 }
 
@@ -60,33 +59,23 @@ async function encryptCredentials(credentials: DbConfig, masterKey: string): Pro
 async function decryptCredentials(encryptedData: EncryptedData, masterKey: string): Promise<DbConfig> {
   const iv = Buffer.from(encryptedData.iv, 'hex');
   const tag = Buffer.from(encryptedData.tag, 'hex');
-  
-  // Primeiro, precisamos descriptografar para obter o salt
-  const tempKey = Buffer.from(masterKey.padEnd(32, '0').slice(0, 32));
-  let decipher = createDecipheriv('aes-256-gcm', tempKey, iv);
-  decipher.setAuthTag(tag);
+  const salt = Buffer.from(encryptedData.salt, 'hex');
   
   try {
+    // Deriva a chave usando o salt armazenado
+    const key = await deriveKey(masterKey, salt);
+    
+    // Descriptografa com a chave derivada
+    const decipher = createDecipheriv('aes-256-gcm', key, iv);
+    decipher.setAuthTag(tag);
+    
     let decrypted = decipher.update(encryptedData.ciphertext, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     
-    const data = JSON.parse(decrypted);
-    const salt = Buffer.from(data.salt, 'hex');
-    const key = await deriveKey(masterKey, salt);
-    
-    // Agora descriptografa com a chave correta
-    decipher = createDecipheriv('aes-256-gcm', key, iv);
-    decipher.setAuthTag(tag);
-    
-    decrypted = decipher.update(encryptedData.ciphertext, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
     const credentials = JSON.parse(decrypted);
-    delete credentials.salt; // Remove o salt dos dados retornados
-    
     return credentials as DbConfig;
   } catch (error) {
-    throw new Error('Falha ao descriptografar credenciais: chave master inválida');
+    throw new Error('Falha ao descriptografar credenciais: chave master inválida ou dados corrompidos');
   }
 }
 
