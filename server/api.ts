@@ -1,7 +1,7 @@
 import { Express } from "express";
 import { storage } from "./storage";
 import { isAdmin, isAuthenticated } from "./auth";
-import { insertAgentPromptSchema, insertAgentSchema } from "@shared/schema";
+import { insertAgentPromptSchema, insertAgentSchema, insertAssistantsPortfolioSchema } from "@shared/schema";
 
 export function setupApiRoutes(app: Express) {
   // API routes para agentes
@@ -192,6 +192,72 @@ export function setupApiRoutes(app: Express) {
       }
 
       await storage.deleteAgentPrompt(id);
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // API routes para assistants portfolio
+  app.get("/api/assistants-portfolio", isAdmin, async (req, res, next) => {
+    try {
+      const assistants = await storage.getAssistantsPortfolio();
+      res.json(assistants);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/assistants-portfolio/:id", isAdmin, async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const assistant = await storage.getAssistantPortfolio(id);
+      if (!assistant) {
+        return res.status(404).json({ error: "Assistente não encontrado" });
+      }
+      res.json(assistant);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/assistants-portfolio", isAdmin, async (req, res, next) => {
+    try {
+      const validationResult = insertAssistantsPortfolioSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: "Dados inválidos", details: validationResult.error });
+      }
+
+      const newAssistant = await storage.createAssistantPortfolio(validationResult.data);
+      res.status(201).json(newAssistant);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.put("/api/assistants-portfolio/:id", isAdmin, async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const validationResult = insertAssistantsPortfolioSchema.partial().safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: "Dados inválidos", details: validationResult.error });
+      }
+
+      const updatedAssistant = await storage.updateAssistantPortfolio(id, validationResult.data);
+      if (!updatedAssistant) {
+        return res.status(404).json({ error: "Assistente não encontrado" });
+      }
+
+      res.json(updatedAssistant);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete("/api/assistants-portfolio/:id", isAdmin, async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      await storage.deleteAssistantPortfolio(id);
       res.status(204).end();
     } catch (error) {
       next(error);
