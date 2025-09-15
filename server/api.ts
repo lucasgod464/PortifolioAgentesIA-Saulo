@@ -1,7 +1,7 @@
 import { Express } from "express";
 import { storage } from "./storage";
 import { isAdmin, isAuthenticated } from "./auth";
-import { insertAgentPromptSchema, insertAgentSchema, insertAssistantsPortfolioSchema } from "@shared/schema";
+import { insertAgentPromptSchema, insertAgentSchema, insertAssistantsPortfolioSchema, insertSiteConfigSchema } from "@shared/schema";
 
 export function setupApiRoutes(app: Express) {
   // API routes para agentes
@@ -264,39 +264,60 @@ export function setupApiRoutes(app: Express) {
     }
   });
 
-  // Rota para retornar configurações do ambiente em tempo real
-  app.get("/api/config", (req, res) => {
+  // API routes para configurações do site
+  app.get("/api/site-config", isAdmin, async (req, res, next) => {
     try {
-      // Função para criar configuração de agente a partir de variáveis de ambiente
-      const createAgentConfig = (id: number) => {
-        const envPrefix = `VITE_AGENT_${id}`;
-        return {
-          id,
-          visible: process.env[`${envPrefix}_VISIBLE`] !== 'false', // Por padrão visível, exceto se explicitamente false
-          icon: process.env[`${envPrefix}_ICON`],
-          title: process.env[`${envPrefix}_TITLE`],
-          description: process.env[`${envPrefix}_DESCRIPTION`],
-          initialMessage: process.env[`${envPrefix}_INITIAL_MESSAGE`],
-          webhookName: process.env[`${envPrefix}_WEBHOOK_NAME`]
-        };
-      };
+      const config = await storage.getSiteConfig();
+      if (!config) {
+        return res.status(404).json({ error: "Configurações não encontradas" });
+      }
+      res.json(config);
+    } catch (error) {
+      next(error);
+    }
+  });
 
-      // Configurações dos agentes (até 20)
-      const agents = Array.from({ length: 20 }, (_, i) => createAgentConfig(i + 1))
-        .filter(agent => 
-          // Filtra apenas agentes que têm pelo menos uma configuração definida ou são explicitamente visíveis
-          agent.visible || agent.icon || agent.title || agent.description || agent.initialMessage || agent.webhookName
-        );
+  app.put("/api/site-config", isAdmin, async (req, res, next) => {
+    try {
+      const validationResult = insertSiteConfigSchema.partial().safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: "Dados inválidos", details: validationResult.error });
+      }
 
-      const config = {
+      const updatedConfig = await storage.updateSiteConfig(validationResult.data);
+      if (!updatedConfig) {
+        return res.status(404).json({ error: "Erro ao atualizar configurações" });
+      }
+
+      res.json(updatedConfig);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Rota para retornar configurações do banco de dados ou ambiente como fallback
+  app.get("/api/config", async (req, res) => {
+    try {
+      // Busca configurações do banco de dados
+      const dbConfig = await storage.getSiteConfig();
+      
+      // Se não encontrar no banco, usa fallback das variáveis de ambiente
+      const config = dbConfig ? {
+        logoUrl: dbConfig.logoUrl,
+        faviconUrl: dbConfig.faviconUrl,
+        webhookUrl: dbConfig.webhookUrl,
+        whatsappNumber: dbConfig.whatsappNumber,
+        siteTitle: dbConfig.siteTitle,
+        logoLink: dbConfig.logoLink,
+      } : {
         logoUrl: process.env.VITE_LOGO_URL || 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png',
         faviconUrl: process.env.VITE_FAVICON_URL || 'https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png',
         webhookUrl: process.env.VITE_WEBHOOK_URL || 'https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual',
         whatsappNumber: process.env.VITE_WHATSAPP_NUMBER || '5544999998888',
         siteTitle: process.env.VITE_SITE_TITLE || 'NexusAI - Agentes de Inteligência Artificial',
         logoLink: process.env.VITE_LOGO_LINK || '/',
-        agents
       };
+      
       res.json(config);
     } catch (error) {
       res.status(500).json({ error: "Erro ao obter configurações" });
