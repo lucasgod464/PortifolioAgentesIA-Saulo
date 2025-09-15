@@ -17,6 +17,7 @@ import AgentsPage from "./pages/admin/agents-page";
 import PromptsPage from "./pages/admin/prompts-page";
 import AgentsPromptsPage from "./pages/admin/agents-prompts-page";
 import ConfigPage from "./pages/admin/config-page";
+import DbConfigPage from "./pages/admin/db-config-page";
 
 function Router() {
   return (
@@ -47,6 +48,10 @@ function Router() {
       
       <ProtectedRoute path="/admin/config" adminOnly>
         <ConfigPage />
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/admin/db-config" adminOnly>
+        <DbConfigPage />
       </ProtectedRoute>
       
       {/* Fallback */}

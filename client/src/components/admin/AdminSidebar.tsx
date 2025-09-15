@@ -5,6 +5,7 @@ import {
   Bot, 
   MessageSquare, 
   Settings, 
+  Database,
   LogOut,
   Menu,
   X
@@ -237,6 +238,16 @@ export default function AdminSidebar() {
               >
                 <Settings size={20} />
                 Configurações
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="/admin/db-config" 
+                $active={location === '/admin/db-config'}
+                onClick={closeSidebar}
+              >
+                <Database size={20} />
+                Banco de Dados
               </NavLink>
             </NavItem>
           </NavList>
