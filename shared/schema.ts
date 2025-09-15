@@ -18,6 +18,8 @@ export const agents = pgTable("agents", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   icon: text("icon").notNull(),
+  initialMessage: text("initial_message"),
+  webhookName: text("webhook_name"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
