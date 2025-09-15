@@ -383,7 +383,7 @@ export default function DbConfigPage() {
 
                 <Button
                   type="submit"
-                  disabled={saveConfigMutation.isPending || (!connectionTestResult?.success && !currentConfig)}
+                  disabled={saveConfigMutation.isPending}
                   data-testid="button-save-config"
                   className="flex-1"
                 >
