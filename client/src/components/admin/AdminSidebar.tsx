@@ -231,8 +231,8 @@ export default function AdminSidebar() {
             </NavItem>
             <NavItem>
               <NavLink 
-                href="/admin/settings" 
-                $active={location === '/admin/settings'}
+                href="/admin/config" 
+                $active={location === '/admin/config'}
                 onClick={closeSidebar}
               >
                 <Settings size={20} />
