@@ -73,7 +73,9 @@ export function setupAuth(app: Express) {
     store: storage.sessionStore,
     cookie: {
       maxAge: sessionMaxAge,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Desabilitado temporariamente para debugging
+      httpOnly: true,
+      sameSite: 'lax',
     },
   };
 
