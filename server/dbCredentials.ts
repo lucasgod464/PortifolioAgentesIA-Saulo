@@ -1,102 +1,27 @@
-import { createCipheriv, createDecipheriv, randomBytes, scrypt } from 'crypto';
-import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import type { DbConfig, DbConfigMasked } from '@shared/schema';
 
-const scryptAsync = promisify(scrypt);
-
-// Arquivo onde as credenciais criptografadas serão armazenadas
-const CREDENTIALS_FILE = path.join(process.cwd(), '.db-credentials.enc');
-
-interface EncryptedData {
-  ciphertext: string;
-  iv: string;
-  tag: string;
-  salt: string;
-}
+// Arquivo onde as credenciais serão armazenadas (sem criptografia)
+const CREDENTIALS_FILE = path.join(process.cwd(), '.db-credentials.json');
 
 interface StoredCredentials {
-  data: EncryptedData;
+  data: DbConfig;
   version: string;
 }
 
 /**
- * Deriva uma chave de criptografia a partir da MASTER_KEY
- */
-async function deriveKey(masterKey: string, salt: Buffer): Promise<Buffer> {
-  return (await scryptAsync(masterKey, salt, 32)) as Buffer;
-}
-
-/**
- * Criptografa as credenciais do banco usando AES-256-GCM
- */
-async function encryptCredentials(credentials: DbConfig, masterKey: string): Promise<EncryptedData> {
-  const salt = randomBytes(16);
-  const iv = randomBytes(12);
-  const key = await deriveKey(masterKey, salt);
-  
-  const cipher = createCipheriv('aes-256-gcm', key, iv);
-  
-  const plaintext = JSON.stringify(credentials);
-  
-  let ciphertext = cipher.update(plaintext, 'utf8', 'hex');
-  ciphertext += cipher.final('hex');
-  
-  const tag = cipher.getAuthTag();
-  
-  return {
-    ciphertext,
-    iv: iv.toString('hex'),
-    tag: tag.toString('hex'),
-    salt: salt.toString('hex')
-  };
-}
-
-/**
- * Descriptografa as credenciais do banco
- */
-async function decryptCredentials(encryptedData: EncryptedData, masterKey: string): Promise<DbConfig> {
-  const iv = Buffer.from(encryptedData.iv, 'hex');
-  const tag = Buffer.from(encryptedData.tag, 'hex');
-  const salt = Buffer.from(encryptedData.salt, 'hex');
-  
-  try {
-    // Deriva a chave usando o salt armazenado
-    const key = await deriveKey(masterKey, salt);
-    
-    // Descriptografa com a chave derivada
-    const decipher = createDecipheriv('aes-256-gcm', key, iv);
-    decipher.setAuthTag(tag);
-    
-    let decrypted = decipher.update(encryptedData.ciphertext, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    const credentials = JSON.parse(decrypted);
-    return credentials as DbConfig;
-  } catch (error) {
-    throw new Error('Falha ao descriptografar credenciais: chave master inválida ou dados corrompidos');
-  }
-}
-
-/**
- * Salva as credenciais criptografadas no arquivo
+ * Salva as credenciais no arquivo
  */
 export async function saveDbCredentials(credentials: DbConfig): Promise<void> {
-  const masterKey = process.env.MASTER_KEY;
-  if (!masterKey) {
-    throw new Error('MASTER_KEY não definida. Defina a variável de ambiente MASTER_KEY para salvar credenciais.');
-  }
-  
   try {
-    const encryptedData = await encryptCredentials(credentials, masterKey);
     const storedData: StoredCredentials = {
-      data: encryptedData,
+      data: credentials,
       version: '1.0'
     };
     
     await fs.writeFile(CREDENTIALS_FILE, JSON.stringify(storedData, null, 2));
-    console.log('✅ Credenciais de banco salvas com segurança');
+    console.log('✅ Credenciais de banco salvas com sucesso');
   } catch (error) {
     console.error('❌ Erro ao salvar credenciais:', error);
     throw new Error('Falha ao salvar credenciais do banco de dados');
@@ -104,22 +29,15 @@ export async function saveDbCredentials(credentials: DbConfig): Promise<void> {
 }
 
 /**
- * Carrega e descriptografa as credenciais do arquivo
+ * Carrega as credenciais do arquivo
  */
 export async function loadDbCredentials(): Promise<DbConfig | null> {
-  const masterKey = process.env.MASTER_KEY;
-  if (!masterKey) {
-    console.warn('⚠️ MASTER_KEY não definida. Usando configurações de ambiente padrão.');
-    return null;
-  }
-  
   try {
     const fileContent = await fs.readFile(CREDENTIALS_FILE, 'utf8');
     const storedData: StoredCredentials = JSON.parse(fileContent);
     
-    const credentials = await decryptCredentials(storedData.data, masterKey);
     console.log('✅ Credenciais de banco carregadas com sucesso');
-    return credentials;
+    return storedData.data;
   } catch (error) {
     if ((error as any).code === 'ENOENT') {
       console.log('ℹ️ Arquivo de credenciais não encontrado. Usando configurações de ambiente padrão.');

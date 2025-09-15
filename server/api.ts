@@ -333,13 +333,6 @@ export function setupApiRoutes(app: Express) {
   // GET /api/admin/db-config - Retorna configurações mascaradas (sem expor senha)
   app.get("/api/admin/db-config", isAdmin, async (req, res, next) => {
     try {
-      if (!process.env.MASTER_KEY) {
-        return res.status(500).json({ 
-          error: "MASTER_KEY não configurada", 
-          message: "Configure a variável MASTER_KEY para gerenciar credenciais de banco de dados" 
-        });
-      }
-
       const maskedConfig = await getMaskedDbConfig();
       if (!maskedConfig) {
         return res.status(404).json({ 
@@ -408,13 +401,6 @@ export function setupApiRoutes(app: Express) {
   // PUT /api/admin/db-config - Salva configurações (requer re-autenticação)
   app.put("/api/admin/db-config", isAdmin, async (req, res, next) => {
     try {
-      if (!process.env.MASTER_KEY) {
-        return res.status(500).json({ 
-          error: "MASTER_KEY não configurada", 
-          message: "Configure a variável MASTER_KEY para gerenciar credenciais de banco de dados" 
-        });
-      }
-
       // Verifica se tem a senha de confirmação para re-autenticação
       const { confirmPassword, ...dbConfigData } = req.body;
       if (!confirmPassword) {
@@ -442,7 +428,7 @@ export function setupApiRoutes(app: Express) {
         });
       }
 
-      // Salva as credenciais criptografadas
+      // Salva as credenciais
       await saveDbCredentials(validationResult.data);
 
       // Log de auditoria (sem expor dados sensíveis)

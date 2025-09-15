@@ -33,14 +33,14 @@ export async function initializeDbConnection(): Promise<void> {
     const dbConfig = await loadDbCredentials();
     if (dbConfig) {
       finalDatabaseUrl = buildDatabaseUrl(dbConfig);
-      sourceInfo = "credenciais criptografadas";
-      console.log("🔒 Carregando configurações do banco a partir de credenciais criptografadas...");
+      sourceInfo = "credenciais armazenadas";
+      console.log("🔒 Carregando configurações do banco a partir de credenciais armazenadas...");
       
       // Atualiza a variável de ambiente para compatibilidade
       process.env.DATABASE_URL = finalDatabaseUrl;
     }
   } catch (error) {
-    console.warn("⚠️ Não foi possível carregar credenciais criptografadas, usando variáveis de ambiente:", error);
+    console.warn("⚠️ Não foi possível carregar credenciais armazenadas, usando variáveis de ambiente:", error);
   }
 
   // Verificar se temos uma DATABASE_URL válida
