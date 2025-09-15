@@ -14,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertCircle, Database, CheckCircle2, Shield, Server } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,17 +23,12 @@ const dbConfigFormSchema = z.object({
   host: z.string().min(1, "Host é obrigatório"),
   port: z.number().int().min(1).max(65535, "Porta deve estar entre 1 e 65535"),
   user: z.string().min(1, "Usuário é obrigatório"),
-  password: z.string().min(1, "Senha é obrigatória"),
+  password: z.string().optional(),
   database: z.string().min(1, "Nome do banco é obrigatório"),
   sessionTable: z.string().min(1, "Tabela de sessão é obrigatória"),
 });
 
-const reAuthSchema = z.object({
-  confirmPassword: z.string().min(1, "Senha é obrigatória para confirmar"),
-});
-
 type DbConfigForm = z.infer<typeof dbConfigFormSchema>;
-type ReAuthForm = z.infer<typeof reAuthSchema>;
 
 interface DbConfigMasked {
   host: string;
@@ -48,8 +42,6 @@ interface DbConfigMasked {
 export default function DbConfigPage() {
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [connectionTestResult, setConnectionTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [showReAuthDialog, setShowReAuthDialog] = useState(false);
-  const [pendingConfigData, setPendingConfigData] = useState<DbConfigForm | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -73,13 +65,6 @@ export default function DbConfigPage() {
     },
   });
 
-  // Form para re-autenticação
-  const reAuthForm = useForm<ReAuthForm>({
-    resolver: zodResolver(reAuthSchema),
-    defaultValues: {
-      confirmPassword: "",
-    },
-  });
 
   // Atualiza valores do form quando carrega configurações
   if (currentConfig && !form.formState.isDirty) {
@@ -119,11 +104,8 @@ export default function DbConfigPage() {
 
   // Mutation para salvar configurações
   const saveConfigMutation = useMutation({
-    mutationFn: async (data: { configData: DbConfigForm; confirmPassword: string }) => {
-      const response = await apiRequest("PUT", "/api/admin/db-config", {
-        ...data.configData,
-        confirmPassword: data.confirmPassword,
-      });
+    mutationFn: async (data: DbConfigForm) => {
+      const response = await apiRequest("PUT", "/api/admin/db-config", data);
       return await response.json();
     },
     onSuccess: (data) => {
@@ -131,9 +113,6 @@ export default function DbConfigPage() {
         title: "✅ Configurações salvas!",
         description: data.message,
       });
-      setShowReAuthDialog(false);
-      setPendingConfigData(null);
-      reAuthForm.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/admin/db-config"] });
     },
     onError: (error: any) => {
@@ -156,20 +135,9 @@ export default function DbConfigPage() {
     }
   };
 
-  // Inicia o processo de salvamento (abre dialog de re-auth)
-  const handleSaveConfig = (data: DbConfigForm) => {
-    setPendingConfigData(data);
-    setShowReAuthDialog(true);
-  };
-
-  // Confirma o salvamento após re-autenticação
-  const handleConfirmSave = async (reAuthData: ReAuthForm) => {
-    if (!pendingConfigData) return;
-    
-    await saveConfigMutation.mutateAsync({
-      configData: pendingConfigData,
-      confirmPassword: reAuthData.confirmPassword,
-    });
+  // Salva as configurações diretamente
+  const handleSaveConfig = async (data: DbConfigForm) => {
+    await saveConfigMutation.mutateAsync(data);
   };
 
   // Preview da DATABASE_URL
@@ -437,68 +405,6 @@ export default function DbConfigPage() {
         </CardContent>
       </Card>
 
-      {/* Dialog de re-autenticação */}
-      <Dialog open={showReAuthDialog} onOpenChange={setShowReAuthDialog}>
-        <DialogContent data-testid="dialog-reauth">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-amber-500" />
-              <span>Confirmação de Segurança</span>
-            </DialogTitle>
-            <DialogDescription>
-              Por segurança, confirme sua senha atual para salvar as configurações de banco de dados.
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...reAuthForm}>
-            <form onSubmit={reAuthForm.handleSubmit(handleConfirmSave)}>
-              <FormField
-                control={reAuthForm.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sua Senha Atual</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Digite sua senha atual"
-                        data-testid="input-confirm-password"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter className="mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowReAuthDialog(false)}
-                  data-testid="button-cancel-reauth"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={saveConfigMutation.isPending}
-                  data-testid="button-confirm-save"
-                >
-                  {saveConfigMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      Salvando...
-                    </>
-                  ) : (
-                    "Confirmar e Salvar"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

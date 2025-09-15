@@ -11,12 +11,27 @@ interface StoredCredentials {
 }
 
 /**
- * Salva as credenciais no arquivo
+ * Salva as credenciais no arquivo (preserva senha existente se não fornecida)
  */
 export async function saveDbCredentials(credentials: DbConfig): Promise<void> {
   try {
+    let finalCredentials = credentials;
+    
+    // Se não há senha fornecida, preserva a senha existente
+    if (!credentials.password) {
+      const existingCredentials = await loadDbCredentials();
+      if (existingCredentials?.password) {
+        finalCredentials = {
+          ...credentials,
+          password: existingCredentials.password
+        };
+      } else {
+        throw new Error('Senha é obrigatória na primeira configuração');
+      }
+    }
+    
     const storedData: StoredCredentials = {
-      data: credentials,
+      data: finalCredentials,
       version: '1.0'
     };
     

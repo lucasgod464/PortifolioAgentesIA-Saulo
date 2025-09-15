@@ -134,7 +134,7 @@ export const dbConfigSchema = z.object({
   host: z.string().min(1, "Host é obrigatório"),
   port: z.number().int().min(1).max(65535, "Porta deve estar entre 1 e 65535"),
   user: z.string().min(1, "Usuário é obrigatório"),
-  password: z.string().min(1, "Senha é obrigatória"),
+  password: z.string().optional(),
   database: z.string().min(1, "Nome do banco é obrigatório"),
   sessionTable: z.string().min(1, "Tabela de sessão é obrigatória").default("session"),
 });

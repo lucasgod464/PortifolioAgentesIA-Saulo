@@ -1,6 +1,6 @@
 import { Express } from "express";
 import { storage } from "./storage";
-import { isAdmin, isAuthenticated, comparePasswords } from "./auth";
+import { isAdmin, isAuthenticated } from "./auth";
 import { insertAgentPromptSchema, insertAgentSchema, insertAssistantsPortfolioSchema, insertSiteConfigSchema, dbConfigSchema, dbConfigTestSchema } from "@shared/schema";
 import { getMaskedDbConfig, saveDbCredentials, buildDatabaseUrl } from "./dbCredentials";
 import { Pool } from "pg";
@@ -398,29 +398,11 @@ export function setupApiRoutes(app: Express) {
     }
   });
 
-  // PUT /api/admin/db-config - Salva configurações (requer re-autenticação)
+  // PUT /api/admin/db-config - Salva configurações
   app.put("/api/admin/db-config", isAdmin, async (req, res, next) => {
     try {
-      // Verifica se tem a senha de confirmação para re-autenticação
-      const { confirmPassword, ...dbConfigData } = req.body;
-      if (!confirmPassword) {
-        return res.status(400).json({ 
-          error: "Re-autenticação necessária", 
-          message: "Informe sua senha atual para confirmar as alterações" 
-        });
-      }
-
-      // Verifica a senha do usuário atual
-      const currentUser = await storage.getUser(req.user!.id);
-      if (!currentUser || !(await comparePasswords(confirmPassword, currentUser.password))) {
-        return res.status(401).json({ 
-          error: "Senha incorreta", 
-          message: "A senha informada não confere com a sua senha atual" 
-        });
-      }
-
       // Valida os dados da configuração
-      const validationResult = dbConfigSchema.safeParse(dbConfigData);
+      const validationResult = dbConfigSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
           error: "Dados inválidos", 
