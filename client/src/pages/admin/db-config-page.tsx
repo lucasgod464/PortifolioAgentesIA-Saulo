@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertCircle, Database, CheckCircle2, Shield, Server } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import AdminLayout from '@/components/admin/AdminLayout';
 
 // Schema para validação do formulário
 const dbConfigFormSchema = z.object({
@@ -148,29 +149,32 @@ export default function DbConfigPage() {
 
   if (isLoading) {
     return (
+      <AdminLayout>
+        <div className="container mx-auto p-6">
+          <div className="flex items-center space-x-2 mb-6">
+            <Database className="h-6 w-6 text-cyan-500" />
+            <h1 className="text-2xl font-bold">Configurações do Banco de Dados</h1>
+          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
+                <span className="ml-2">Carregando configurações...</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
       <div className="container mx-auto p-6">
         <div className="flex items-center space-x-2 mb-6">
           <Database className="h-6 w-6 text-cyan-500" />
           <h1 className="text-2xl font-bold">Configurações do Banco de Dados</h1>
         </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
-              <span className="ml-2">Carregando configurações...</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center space-x-2 mb-6">
-        <Database className="h-6 w-6 text-cyan-500" />
-        <h1 className="text-2xl font-bold">Configurações do Banco de Dados</h1>
-      </div>
 
       {/* Aviso de segurança */}
       <Card className="mb-6 border-amber-200 bg-amber-50">
@@ -405,6 +409,7 @@ export default function DbConfigPage() {
         </CardContent>
       </Card>
 
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
