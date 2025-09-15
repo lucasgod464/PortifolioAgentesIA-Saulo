@@ -3,6 +3,7 @@ import {
   agents,
   agentPrompts,
   assistantsPortfolio,
+  siteConfigs,
   type User,
   type InsertUser,
   type Agent,
@@ -10,7 +11,9 @@ import {
   type AgentPrompt,
   type InsertAgentPrompt,
   type AssistantsPortfolio,
-  type InsertAssistantsPortfolio
+  type InsertAssistantsPortfolio,
+  type SiteConfig,
+  type InsertSiteConfig
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -50,6 +53,10 @@ export interface IStorage {
   createAssistantPortfolio(assistant: InsertAssistantsPortfolio): Promise<AssistantsPortfolio>;
   updateAssistantPortfolio(id: string, assistant: Partial<InsertAssistantsPortfolio>): Promise<AssistantsPortfolio | undefined>;
   deleteAssistantPortfolio(id: string): Promise<boolean>;
+  
+  // Métodos de configurações do site
+  getSiteConfig(): Promise<SiteConfig | undefined>;
+  updateSiteConfig(config: Partial<InsertSiteConfig>): Promise<SiteConfig | undefined>;
   
   // Propriedades
   sessionStore: any;
@@ -208,6 +215,31 @@ export class DatabaseStorage implements IStorage {
   async deleteAssistantPortfolio(id: string): Promise<boolean> {
     await db.delete(assistantsPortfolio).where(eq(assistantsPortfolio.id, id));
     return true;
+  }
+  
+  // Site Config methods
+  async getSiteConfig(): Promise<SiteConfig | undefined> {
+    const [config] = await db.select().from(siteConfigs).limit(1);
+    return config;
+  }
+  
+  async updateSiteConfig(config: Partial<InsertSiteConfig>): Promise<SiteConfig | undefined> {
+    // Como só temos uma configuração, vamos sempre atualizar o primeiro registro
+    const [existingConfig] = await db.select().from(siteConfigs).limit(1);
+    
+    if (existingConfig) {
+      const [updatedConfig] = await db
+        .update(siteConfigs)
+        .set({ ...config, updatedAt: new Date() })
+        .where(eq(siteConfigs.id, existingConfig.id))
+        .returning();
+      
+      return updatedConfig;
+    }
+    
+    // Se não existir, cria um novo
+    const [newConfig] = await db.insert(siteConfigs).values(config).returning();
+    return newConfig;
   }
 }
 
