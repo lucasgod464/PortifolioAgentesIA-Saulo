@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atualização de Prompts de Agentes</title>
+    <style>
+        :root {
+            --dark-blue: #0b1a2d;
+            --purple: #6e3996;
+            --light-purple: #a56bff;
+            --black: #111;
+            --white: #fff;
+        }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: var(--black);
+            color: var(--white);
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, var(--dark-blue), var(--black));
+            overflow: hidden;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .particle {
+            position: absolute;
+            background: var(--purple);
+            border-radius: 50%;
+            opacity: 0.2;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0.2;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100vw) rotate(360deg);
+                opacity: 0.2;
+            }
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(11, 26, 45, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(111, 57, 150, 0.4);
+            border: 1px solid rgba(111, 57, 150, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--light-purple);
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(165, 107, 255, 0.5);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            color: var(--light-purple);
+        }
+        
+        select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--purple);
+            color: var(--white);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--light-purple);
+            border-color: var(--light-purple);
+        }
+        
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, var(--purple), var(--light-purple));
+            border: none;
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            box-shadow: 0 0 15px var(--light-purple);
+            transform: translateY(-2px);
+        }
+        
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .btn:hover:before {
+            left: 100%;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, var(--dark-blue), rgba(11, 26, 45, 0.9));
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(111, 57, 150, 0.6);
+            border: 1px solid var(--purple);
+            position: relative;
+            animation: modalAppear 0.3s ease-out forwards;
+        }
+        
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal h2 {
+            color: var(--light-purple);
+            margin-top: 0;
+        }
+        
+        .modal p {
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        
+        .modal .success {
+            color: #4caf50;
+        }
+        
+        .modal .error {
+            color: #f44336;
+        }
+        
+        .close-btn {
+            background: linear-gradient(45deg, var(--purple), var(--light-purple));
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            box-shadow: 0 0 10px var(--light-purple);
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(111, 57, 150, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--light-purple);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .loading p {
+            margin-top: 15px;
+            color: var(--light-purple);
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <div class="particles" id="particles"></div>
+    </div>
+    
+    <div class="container">
+        <h1>Atualização de Prompts de Agentes</h1>
+        <form id="promptForm">
+            <div class="form-group">
+                <label for="agentName">Nome do Agente</label>
+                <select id="agentName" name="agentName" required>
+                    <option value="" disabled selected>Selecione um agente</option>
+                    <option value="agente-comercial-sdr">agente-comercial-sdr</option>
+                    <option value="agente-clinicas">agente-clinicas</option>
+                    <option value="agente-imobiliarias">agente-imobiliarias</option>
+                    <option value="agente-advocacia">agente-advocacia</option>
+                    <option value="agente-financeiro">agente-financeiro</option>
+                    <option value="agente-vendedor-infoprodutos">agente-vendedor-infoprodutos</option>
+                    <option value="agente-cs">agente-cs</option>
+                    <option value="agente-recuperador-de-vendas">agente-recuperador-de-vendas</option>
+                    <option value="agente-recrutamento-pessoal-rh">agente-recrutamento-pessoal-rh</option>
+                    <option value="agente-para-escolas-de-ensino">agente-para-escolas-de-ensino</option>
+                    <option value="agente-terapeuta">agente-terapeuta</option>
+                    <option value="agente-para-psicologos">agente-para-psicologos</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="agentPrompt">Prompt do Agente</label>
+                <textarea id="agentPrompt" name="agentPrompt" required placeholder="Insira o prompt para o agente selecionado..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="agentTools">Tools</label>
+                <textarea id="agentTools" name="agentTools" placeholder="Insira as tools para o agente selecionado..."></textarea>
+            </div>
+            <button type="submit" class="btn">Atualizar Prompt</button>
+        </form>
+    </div>
+    
+    <!-- Modal de sucesso ou erro -->
+    <div class="modal" id="responseModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Atualização de Prompt</h2>
+            <p id="modalMessage"></p>
+            <button class="close-btn" id="closeModal">Fechar</button>
+        </div>
+    </div>
+    
+    <!-- Loading indicator -->
+    <div class="loading" id="loadingIndicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Atualizando prompt...</p>
+    </div>
+    
+    <script>
+        // Criar partículas para o fundo
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const numberOfParticles = 30;
+            
+            for (let i = 0; i < numberOfParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Tamanho aleatório
+                const size = Math.random() * 150 + 50;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Posição aleatória
+                const posX = Math.random() * window.innerWidth;
+                const posY = Math.random() * window.innerHeight;
+                particle.style.left = `${posX}px`;
+                particle.style.top = `${posY}px`;
+                
+                // Duração e atraso aleatórios para a animação
+                const duration = Math.random() * 30 + 15;
+                const delay = Math.random() * 10;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Mostrar modal com mensagem
+        function showModal(success, agentName) {
+            const modal = document.getElementById('responseModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            
+            if (success) {
+                modalTitle.textContent = 'Sucesso!';
+                modalMessage.innerHTML = `O prompt do agente <strong>${agentName}</strong> foi atualizado com sucesso.`;
+                modalMessage.className = 'success';
+            } else {
+                modalTitle.textContent = 'Erro!';
+                modalMessage.innerHTML = `Não foi possível efetuar a atualização do prompt do agente <strong>${agentName}</strong>.`;
+                modalMessage.className = 'error';
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Fechar modal
+        function closeModal() {
+            document.getElementById('responseModal').style.display = 'none';
+        }
+        
+        // Mostrar/esconder loading
+        function toggleLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'flex' : 'none';
+        }
+        
+        // Inicialização quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Configurar o form para submissão
+            const form = document.getElementById('promptForm');
+            
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const agentName = document.getElementById('agentName').value;
+                const agentPrompt = document.getElementById('agentPrompt').value;
+                const agentTools = document.getElementById('agentTools').value;
+                
+                if (!agentName || !agentPrompt) {
+                    alert('Por favor, preencha todos os campos obrigatórios.');
+                    return;
+                }
+                
+                toggleLoading(true);
+                
+                // Preparar dados para envio
+                const data = {
+                    agentName: agentName,
+                    agentPrompt: agentPrompt,
+                    agentTools: agentTools
+                };
+                
+                // Enviar para o webhook
+                fetch('https://n8n.yuccie.pro/webhook/atualizar_prompt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    // Verificar se a resposta pode ser parseada como JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        return response.text().then(text => {
+                            // Tentar converter texto para JSON
+                            try {
+                                return JSON.parse(text);
+                            } catch (e) {
+                                // Se falhar, retornar o texto como está
+                                return text;
+                            }
+                        });
+                    }
+                })
+                .then(result => {
+                    toggleLoading(false);
+                    
+                    let success = false;
+                    
+                    // Verificar diferentes formatos de resposta
+                    if (result) {
+                        if (typeof result === 'string') {
+                            // Se for uma string, verificar se contém a mensagem de sucesso
+                            success = result.includes('Deu tudo certo');
+                        } else if (Array.isArray(result) && result.length > 0) {
+                            // Se for um array, verificar o primeiro item
+                            success = result[0]?.message === 'Deu tudo certo';
+                        } else if (typeof result === 'object') {
+                            // Se for um objeto direto como {"message":"Deu tudo certo"}
+                            success = result.message === 'Deu tudo certo';
+                        }
+                    }
+                    
+                    showModal(success, agentName);
+                })
+                .catch(error => {
+                    console.error('Erro ao enviar dados:', error);
+                    toggleLoading(false);
+                    showModal(false, agentName);
+                });
+            });
+            
+            // Configurar o botão de fechar o modal
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+        });
+    </script>
+</body>
+</html>
