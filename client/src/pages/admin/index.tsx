@@ -10,7 +10,7 @@ export default function AdminIndexPage() {
   useEffect(() => {
     if (!isLoading) {
       if (user?.isAdmin) {
-        navigate('/admin/dashboard');
+        navigate('/admin/agents');
       } else {
         navigate('/admin/login');
       }

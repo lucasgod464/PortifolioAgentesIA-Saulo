@@ -128,30 +128,3 @@ export type LeadsPortfolio = typeof leadsPortfolio.$inferSelect;
 
 export type InsertSiteConfig = z.infer<typeof insertSiteConfigSchema>;
 export type SiteConfig = typeof siteConfigs.$inferSelect;
-
-// Esquemas para configuração de banco de dados (não armazenado no DB)
-export const dbConfigSchema = z.object({
-  host: z.string().min(1, "Host é obrigatório"),
-  port: z.number().int().min(1).max(65535, "Porta deve estar entre 1 e 65535"),
-  user: z.string().min(1, "Usuário é obrigatório"),
-  password: z.string().optional(),
-  database: z.string().min(1, "Nome do banco é obrigatório"),
-  sessionTable: z.string().min(1, "Tabela de sessão é obrigatória").default("session"),
-});
-
-export const dbConfigMaskedSchema = z.object({
-  host: z.string(),
-  port: z.number(),
-  user: z.string(),
-  database: z.string(),
-  sessionTable: z.string(),
-  passwordMasked: z.boolean().default(true),
-});
-
-export const dbConfigTestSchema = dbConfigSchema.extend({
-  testConnection: z.boolean().default(true),
-});
-
-export type DbConfig = z.infer<typeof dbConfigSchema>;
-export type DbConfigMasked = z.infer<typeof dbConfigMaskedSchema>;
-export type DbConfigTest = z.infer<typeof dbConfigTestSchema>;
