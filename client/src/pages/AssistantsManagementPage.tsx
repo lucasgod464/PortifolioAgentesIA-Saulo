@@ -201,11 +201,7 @@ const AssistantsManagementPage: React.FC = () => {
   // Mutação para criar assistente
   const createMutation = useMutation({
     mutationFn: (data: InsertAssistantsPortfolio) =>
-      apiRequest('/api/assistants-portfolio', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
-      }),
+      apiRequest('POST', '/api/assistants-portfolio', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assistants-portfolio'] });
       toast({ title: 'Sucesso!', description: 'Assistente criado com sucesso.' });
@@ -223,11 +219,7 @@ const AssistantsManagementPage: React.FC = () => {
   // Mutação para atualizar assistente
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<InsertAssistantsPortfolio> }) =>
-      apiRequest(`/api/assistants-portfolio/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
-      }),
+      apiRequest('PUT', `/api/assistants-portfolio/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assistants-portfolio'] });
       toast({ title: 'Sucesso!', description: 'Assistente atualizado com sucesso.' });
@@ -245,7 +237,7 @@ const AssistantsManagementPage: React.FC = () => {
   // Mutação para deletar assistente
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
-      apiRequest(`/api/assistants-portfolio/${id}`, { method: 'DELETE' }),
+      apiRequest('DELETE', `/api/assistants-portfolio/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assistants-portfolio'] });
       toast({ title: 'Sucesso!', description: 'Assistente removido com sucesso.' });
