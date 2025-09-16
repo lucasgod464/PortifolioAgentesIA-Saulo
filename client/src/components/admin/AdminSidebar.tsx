@@ -1,5 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { 
+  Home, 
+  Users, 
   Bot, 
   MessageSquare, 
   Settings, 
@@ -189,6 +191,16 @@ export default function AdminSidebar() {
           <NavList>
             <NavItem>
               <NavLink 
+                href="/admin/dashboard" 
+                $active={location === '/admin/dashboard'}
+                onClick={closeSidebar}
+              >
+                <Home size={20} />
+                Dashboard
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
                 href="/admin/agents" 
                 $active={location === '/admin/agents'}
                 onClick={closeSidebar}
@@ -209,8 +221,18 @@ export default function AdminSidebar() {
             </NavItem>
             <NavItem>
               <NavLink 
-                href="/admin/config" 
-                $active={location === '/admin/config'}
+                href="/admin/users" 
+                $active={location === '/admin/users'}
+                onClick={closeSidebar}
+              >
+                <Users size={20} />
+                Usuários
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="/admin/settings" 
+                $active={location === '/admin/settings'}
                 onClick={closeSidebar}
               >
                 <Settings size={20} />

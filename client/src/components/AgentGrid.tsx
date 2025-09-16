@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import AgentCard from './AgentCard';
 import { agents } from '../data/agents';
-import { useAgentsFromDatabase, DatabaseAgent } from '../hooks/use-env-config';
+import { useAgentsFromEnv, AgentConfig } from '../hooks/use-env-config';
 
 const AgentSection = styled.section`
   position: relative;
@@ -76,17 +76,32 @@ const AgentGridContainer = styled.div`
 `;
 
 const AgentGrid: React.FC = () => {
-  const { agents: databaseAgents, loading, error } = useAgentsFromDatabase();
+  const { agents: configuredAgents, loading } = useAgentsFromEnv();
 
-  // Converte agentes do banco para o formato esperado pelo AgentCard
-  const displayAgents = databaseAgents.map((dbAgent) => ({
-    id: dbAgent.id,
-    icon: dbAgent.icon,
-    title: dbAgent.title,
-    description: dbAgent.description,
-    initialMessage: `Olá! Sou o ${dbAgent.title}. Como posso ajudar você hoje?`,
-    webhookName: dbAgent.title
-  }));
+  // Função para mesclar configurações do env com dados padrão
+  const getDisplayAgents = () => {
+    return configuredAgents.map((envConfig) => {
+      // Se não está visível na configuração do ambiente, pula este agente
+      if (!envConfig.visible) {
+        return null;
+      }
+      
+      // Busca dados padrão se existir
+      const defaultAgent = agents.find(agent => agent.id === envConfig.id);
+      
+      // Mescla dados padrão com configurações do ambiente
+      return {
+        id: envConfig.id,
+        icon: envConfig.icon || defaultAgent?.icon || "fas fa-robot",
+        title: envConfig.title || defaultAgent?.title || `Agente ${envConfig.id}`,
+        description: envConfig.description || defaultAgent?.description || "Agente especializado em resolver suas necessidades específicas.",
+        initialMessage: envConfig.initialMessage || (defaultAgent ? `Olá! Sou o ${defaultAgent.title}. Como posso ajudar você hoje?` : `Olá! Sou o Agente ${envConfig.id}. Como posso ajudar você hoje?`),
+        webhookName: envConfig.webhookName || defaultAgent?.title || `Agente ${envConfig.id}`
+      };
+    }).filter(Boolean); // Remove agentes null (não visíveis)
+  };
+
+  const displayAgents = getDisplayAgents();
 
   if (loading) {
     return (
@@ -95,38 +110,6 @@ const AgentGrid: React.FC = () => {
           <SectionHeader>
             <SectionTitle>Carregando Agentes...</SectionTitle>
             <Divider />
-          </SectionHeader>
-        </SectionContainer>
-      </AgentSection>
-    );
-  }
-
-  if (error) {
-    return (
-      <AgentSection id="agents">
-        <SectionContainer>
-          <SectionHeader>
-            <SectionTitle>Erro ao Carregar Agentes</SectionTitle>
-            <Divider />
-            <SectionDescription>
-              Não foi possível carregar os agentes. Tente recarregar a página ou entre em contato com o suporte.
-            </SectionDescription>
-          </SectionHeader>
-        </SectionContainer>
-      </AgentSection>
-    );
-  }
-
-  if (displayAgents.length === 0) {
-    return (
-      <AgentSection id="agents">
-        <SectionContainer>
-          <SectionHeader>
-            <SectionTitle>Nenhum Agente Disponível</SectionTitle>
-            <Divider />
-            <SectionDescription>
-              Não há agentes configurados no momento. Configure os agentes através do painel administrativo.
-            </SectionDescription>
           </SectionHeader>
         </SectionContainer>
       </AgentSection>

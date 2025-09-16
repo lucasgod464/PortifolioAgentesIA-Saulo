@@ -1,4 +1,4 @@
-import { db, pool, initializeDbConnection } from './db';
+import { db, pool } from './db';
 import { sql } from 'drizzle-orm';
 import { users, agents, agentPrompts } from '@shared/schema';
 import { eq } from 'drizzle-orm';
@@ -156,6 +156,14 @@ async function seedInitialData() {
 async function connectWithRetry(maxRetries = 10, retryDelay = 3000): Promise<boolean> {
   let retries = 0;
   
+  // Imprime informações de conexão para debug
+  console.log('🔍 Tentando conectar ao banco de dados com estas configurações:');
+  console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '***' + process.env.DATABASE_URL.substring(process.env.DATABASE_URL.indexOf('@')) : 'não definido'}`);
+  console.log(`- DB_HOST: ${process.env.DB_HOST || 'não definido'}`);
+  console.log(`- DB_PORT: ${process.env.DB_PORT || 'não definido'}`);
+  console.log(`- DB_USER: ${process.env.DB_USER || 'não definido'}`);
+  console.log(`- DB_NAME: ${process.env.DB_NAME || 'não definido'}`);
+  
   while (retries < maxRetries) {
     try {
       // Tenta uma consulta simples para verificar a conexão
@@ -203,10 +211,7 @@ export async function initializeDatabase() {
   try {
     console.log('🔍 Verificando banco de dados...');
     
-    // Primeiro inicializa a conexão (carrega credenciais criptografadas se existirem)
-    await initializeDbConnection();
-    
-    // Depois tenta conectar ao banco
+    // Primeiro tenta conectar ao banco
     const connected = await connectWithRetry();
     if (!connected) {
       console.error('❌ Não foi possível conectar ao banco de dados após várias tentativas.');
@@ -224,7 +229,7 @@ export async function initializeDatabase() {
   } catch (error: any) {
     console.error('❌ Falha ao inicializar banco de dados:', error);
     console.error('Detalhes do erro:', error instanceof Error ? error.message : String(error));
-    console.error('Verifique se as configurações de banco estão corretas ou configure credenciais via interface admin.');
+    console.error('Verifique se as variáveis de ambiente DATABASE_URL, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD e DB_NAME estão configuradas corretamente.');
     
     // Não lança exceção para permitir que o servidor continue funcionando com operações que não precisam do banco
     // O banco tentará se reconectar nas próximas solicitações

@@ -18,8 +18,6 @@ export const agents = pgTable("agents", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   icon: text("icon").notNull(),
-  initialMessage: text("initial_message"),
-  webhookName: text("webhook_name"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -52,28 +50,12 @@ export const insertUserSchema = createInsertSchema(users).pick({
   isAdmin: true,
 });
 
-export const insertAgentSchema = createInsertSchema(agents).omit({
-  id: true,
-  createdAt: true,
-});
+export const insertAgentSchema = createInsertSchema(agents);
 
 export const insertAgentPromptSchema = createInsertSchema(agentPrompts).pick({
   agentId: true,
   prompt: true,
   isActive: true,
-});
-
-// Tabela de configurações do sistema
-export const siteConfigs = pgTable("site_configs", {
-  id: serial("id").primaryKey(),
-  siteTitle: text("site_title").notNull().default("NexusAI - Agentes de Inteligência Artificial"),
-  logoUrl: text("logo_url").notNull().default("https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png"),
-  logoLink: text("logo_link").notNull().default("/"),
-  faviconUrl: text("favicon_url").notNull().default("https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png"),
-  webhookUrl: text("webhook_url").notNull().default("https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual"),
-  whatsappNumber: text("whatsapp_number").notNull().default("5544999998888"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 // Tabela de assistentes portfolio
@@ -98,12 +80,6 @@ export const leadsPortfolio = pgTable("leads_portfolio", {
   telefone: text("telefone"),
 });
 
-export const insertSiteConfigSchema = createInsertSchema(siteConfigs).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 // Schemas para inserção das novas tabelas
 export const insertAssistantsPortfolioSchema = createInsertSchema(assistantsPortfolio);
 export const insertLeadsPortfolioSchema = createInsertSchema(leadsPortfolio).omit({
@@ -125,6 +101,3 @@ export type AssistantsPortfolio = typeof assistantsPortfolio.$inferSelect;
 
 export type InsertLeadsPortfolio = z.infer<typeof insertLeadsPortfolioSchema>;
 export type LeadsPortfolio = typeof leadsPortfolio.$inferSelect;
-
-export type InsertSiteConfig = z.infer<typeof insertSiteConfigSchema>;
-export type SiteConfig = typeof siteConfigs.$inferSelect;

@@ -2,18 +2,12 @@ import {
   users,
   agents,
   agentPrompts,
-  assistantsPortfolio,
-  siteConfigs,
   type User,
   type InsertUser,
   type Agent,
   type InsertAgent,
   type AgentPrompt,
-  type InsertAgentPrompt,
-  type AssistantsPortfolio,
-  type InsertAssistantsPortfolio,
-  type SiteConfig,
-  type InsertSiteConfig
+  type InsertAgentPrompt
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -46,17 +40,6 @@ export interface IStorage {
   createAgentPrompt(prompt: InsertAgentPrompt): Promise<AgentPrompt>;
   updateAgentPrompt(id: number, prompt: Partial<InsertAgentPrompt>): Promise<AgentPrompt | undefined>;
   deleteAgentPrompt(id: number): Promise<boolean>;
-  
-  // Métodos de assistants portfolio
-  getAssistantsPortfolio(): Promise<AssistantsPortfolio[]>;
-  getAssistantPortfolio(id: string): Promise<AssistantsPortfolio | undefined>;
-  createAssistantPortfolio(assistant: InsertAssistantsPortfolio): Promise<AssistantsPortfolio>;
-  updateAssistantPortfolio(id: string, assistant: Partial<InsertAssistantsPortfolio>): Promise<AssistantsPortfolio | undefined>;
-  deleteAssistantPortfolio(id: string): Promise<boolean>;
-  
-  // Métodos de configurações do site
-  getSiteConfig(): Promise<SiteConfig | undefined>;
-  updateSiteConfig(config: Partial<InsertSiteConfig>): Promise<SiteConfig | undefined>;
   
   // Propriedades
   sessionStore: any;
@@ -185,61 +168,6 @@ export class DatabaseStorage implements IStorage {
   async deleteAgentPrompt(id: number): Promise<boolean> {
     await db.delete(agentPrompts).where(eq(agentPrompts.id, id));
     return true;
-  }
-  
-  // Assistants Portfolio methods
-  async getAssistantsPortfolio(): Promise<AssistantsPortfolio[]> {
-    return await db.select().from(assistantsPortfolio).orderBy(assistantsPortfolio.nomeAgente);
-  }
-  
-  async getAssistantPortfolio(id: string): Promise<AssistantsPortfolio | undefined> {
-    const [assistant] = await db.select().from(assistantsPortfolio).where(eq(assistantsPortfolio.id, id));
-    return assistant;
-  }
-  
-  async createAssistantPortfolio(assistant: InsertAssistantsPortfolio): Promise<AssistantsPortfolio> {
-    const [newAssistant] = await db.insert(assistantsPortfolio).values(assistant).returning();
-    return newAssistant;
-  }
-  
-  async updateAssistantPortfolio(id: string, assistant: Partial<InsertAssistantsPortfolio>): Promise<AssistantsPortfolio | undefined> {
-    const [updatedAssistant] = await db
-      .update(assistantsPortfolio)
-      .set(assistant)
-      .where(eq(assistantsPortfolio.id, id))
-      .returning();
-    
-    return updatedAssistant;
-  }
-  
-  async deleteAssistantPortfolio(id: string): Promise<boolean> {
-    await db.delete(assistantsPortfolio).where(eq(assistantsPortfolio.id, id));
-    return true;
-  }
-  
-  // Site Config methods
-  async getSiteConfig(): Promise<SiteConfig | undefined> {
-    const [config] = await db.select().from(siteConfigs).limit(1);
-    return config;
-  }
-  
-  async updateSiteConfig(config: Partial<InsertSiteConfig>): Promise<SiteConfig | undefined> {
-    // Como só temos uma configuração, vamos sempre atualizar o primeiro registro
-    const [existingConfig] = await db.select().from(siteConfigs).limit(1);
-    
-    if (existingConfig) {
-      const [updatedConfig] = await db
-        .update(siteConfigs)
-        .set({ ...config, updatedAt: new Date() })
-        .where(eq(siteConfigs.id, existingConfig.id))
-        .returning();
-      
-      return updatedConfig;
-    }
-    
-    // Se não existir, cria um novo
-    const [newConfig] = await db.insert(siteConfigs).values(config).returning();
-    return newConfig;
   }
 }
 
