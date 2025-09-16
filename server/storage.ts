@@ -2,15 +2,12 @@ import {
   users,
   agents,
   agentPrompts,
-  assistantsPortfolio,
   type User,
   type InsertUser,
   type Agent,
   type InsertAgent,
   type AgentPrompt,
-  type InsertAgentPrompt,
-  type AssistantsPortfolio,
-  type InsertAssistantsPortfolio
+  type InsertAgentPrompt
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -43,13 +40,6 @@ export interface IStorage {
   createAgentPrompt(prompt: InsertAgentPrompt): Promise<AgentPrompt>;
   updateAgentPrompt(id: number, prompt: Partial<InsertAgentPrompt>): Promise<AgentPrompt | undefined>;
   deleteAgentPrompt(id: number): Promise<boolean>;
-  
-  // Métodos de assistants_portfolio
-  getAllAssistantsPortfolio(): Promise<AssistantsPortfolio[]>;
-  getAssistantsPortfolioById(id: string): Promise<AssistantsPortfolio | undefined>;
-  createAssistantsPortfolio(assistant: InsertAssistantsPortfolio): Promise<AssistantsPortfolio>;
-  updateAssistantsPortfolio(id: string, assistant: Partial<InsertAssistantsPortfolio>): Promise<AssistantsPortfolio | undefined>;
-  deleteAssistantsPortfolio(id: string): Promise<boolean>;
   
   // Propriedades
   sessionStore: any;
@@ -177,35 +167,6 @@ export class DatabaseStorage implements IStorage {
   
   async deleteAgentPrompt(id: number): Promise<boolean> {
     await db.delete(agentPrompts).where(eq(agentPrompts.id, id));
-    return true;
-  }
-
-  // Métodos para assistants_portfolio
-  async getAllAssistantsPortfolio(): Promise<AssistantsPortfolio[]> {
-    return await db.select().from(assistantsPortfolio);
-  }
-
-  async getAssistantsPortfolioById(id: string): Promise<AssistantsPortfolio | undefined> {
-    const [assistant] = await db.select().from(assistantsPortfolio).where(eq(assistantsPortfolio.id, id));
-    return assistant;
-  }
-
-  async createAssistantsPortfolio(assistant: InsertAssistantsPortfolio): Promise<AssistantsPortfolio> {
-    const [newAssistant] = await db.insert(assistantsPortfolio).values(assistant).returning();
-    return newAssistant;
-  }
-
-  async updateAssistantsPortfolio(id: string, assistant: Partial<InsertAssistantsPortfolio>): Promise<AssistantsPortfolio | undefined> {
-    const [updatedAssistant] = await db
-      .update(assistantsPortfolio)
-      .set(assistant)
-      .where(eq(assistantsPortfolio.id, id))
-      .returning();
-    return updatedAssistant;
-  }
-
-  async deleteAssistantsPortfolio(id: string): Promise<boolean> {
-    await db.delete(assistantsPortfolio).where(eq(assistantsPortfolio.id, id));
     return true;
   }
 }

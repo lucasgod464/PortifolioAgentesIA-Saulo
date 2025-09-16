@@ -221,16 +221,6 @@ export default function AdminSidebar() {
             </NavItem>
             <NavItem>
               <NavLink 
-                href="/admin/agent-portfolio" 
-                $active={location === '/admin/agent-portfolio'}
-                onClick={closeSidebar}
-              >
-                <Bot size={20} />
-                Prompts dos Agentes
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink 
                 href="/admin/users" 
                 $active={location === '/admin/users'}
                 onClick={closeSidebar}

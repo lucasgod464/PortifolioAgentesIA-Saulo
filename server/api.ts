@@ -1,7 +1,7 @@
 import { Express } from "express";
 import { storage } from "./storage";
 import { isAdmin, isAuthenticated } from "./auth";
-import { insertAgentPromptSchema, insertAgentSchema, insertAssistantsPortfolioSchema } from "@shared/schema";
+import { insertAgentPromptSchema, insertAgentSchema } from "@shared/schema";
 
 export function setupApiRoutes(app: Express) {
   // API routes para agentes
@@ -234,80 +234,6 @@ export function setupApiRoutes(app: Express) {
       res.json(config);
     } catch (error) {
       res.status(500).json({ error: "Erro ao obter configurações" });
-    }
-  });
-
-  // ==========================================
-  // APIs para gerenciar assistants_portfolio
-  // ==========================================
-
-  // Listar todos os assistants_portfolio
-  app.get("/api/assistants-portfolio", isAdmin, async (req, res, next) => {
-    try {
-      const assistants = await storage.getAllAssistantsPortfolio();
-      res.json(assistants);
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  // Obter assistant_portfolio por ID
-  app.get("/api/assistants-portfolio/:id", isAdmin, async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const assistant = await storage.getAssistantsPortfolioById(id);
-      if (!assistant) {
-        return res.status(404).json({ error: "Assistant não encontrado" });
-      }
-      res.json(assistant);
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  // Criar novo assistant_portfolio
-  app.post("/api/assistants-portfolio", isAdmin, async (req, res, next) => {
-    try {
-      const validationResult = insertAssistantsPortfolioSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({ error: "Dados inválidos", details: validationResult.error });
-      }
-
-      const newAssistant = await storage.createAssistantsPortfolio(validationResult.data);
-      res.status(201).json(newAssistant);
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  // Atualizar assistant_portfolio
-  app.put("/api/assistants-portfolio/:id", isAdmin, async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const validationResult = insertAssistantsPortfolioSchema.partial().safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({ error: "Dados inválidos", details: validationResult.error });
-      }
-
-      const updatedAssistant = await storage.updateAssistantsPortfolio(id, validationResult.data);
-      if (!updatedAssistant) {
-        return res.status(404).json({ error: "Assistant não encontrado" });
-      }
-
-      res.json(updatedAssistant);
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  // Deletar assistant_portfolio
-  app.delete("/api/assistants-portfolio/:id", isAdmin, async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      await storage.deleteAssistantsPortfolio(id);
-      res.status(204).end();
-    } catch (error) {
-      next(error);
     }
   });
 }
