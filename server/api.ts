@@ -1,9 +1,7 @@
 import { Express } from "express";
 import { storage } from "./storage";
 import { isAdmin, isAuthenticated } from "./auth";
-import { insertAgentPromptSchema, insertAgentSchema, insertAssistantsPortfolioSchema, insertSiteConfigSchema, dbConfigSchema, dbConfigTestSchema } from "@shared/schema";
-import { getMaskedDbConfig, saveDbCredentials, buildDatabaseUrl } from "./dbCredentials";
-import { Pool } from "pg";
+import { insertAgentPromptSchema, insertAgentSchema, insertAssistantsPortfolioSchema, insertSiteConfigSchema } from "@shared/schema";
 
 export function setupApiRoutes(app: Express) {
   // API routes para agentes
@@ -326,106 +324,4 @@ export function setupApiRoutes(app: Express) {
     }
   });
 
-  // ===========================================
-  // API ROUTES PARA CONFIGURAÇÃO DE BANCO DE DADOS
-  // ===========================================
-
-  // GET /api/admin/db-config - Retorna configurações mascaradas (sem expor senha)
-  app.get("/api/admin/db-config", isAdmin, async (req, res, next) => {
-    try {
-      const maskedConfig = await getMaskedDbConfig();
-      if (!maskedConfig) {
-        return res.status(404).json({ 
-          error: "Configurações não encontradas",
-          message: "Nenhuma configuração de banco salva encontrada"
-        });
-      }
-
-      res.json(maskedConfig);
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  // POST /api/admin/db-config/test - Testa conexão com o banco (não salva)
-  app.post("/api/admin/db-config/test", isAdmin, async (req, res, next) => {
-    try {
-      const validationResult = dbConfigTestSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Dados inválidos", 
-          details: validationResult.error 
-        });
-      }
-
-      const { host, port, user, password, database } = validationResult.data;
-      
-      // Testa conexão com timeout de 5 segundos
-      const testPool = new Pool({
-        host,
-        port,
-        user,
-        password,
-        database,
-        ssl: false,
-        connectionTimeoutMillis: 5000,
-        idleTimeoutMillis: 1000,
-        max: 1, // Apenas uma conexão para teste
-      });
-
-      try {
-        const client = await testPool.connect();
-        await client.query('SELECT 1');
-        client.release();
-        await testPool.end();
-
-        res.json({ 
-          success: true, 
-          message: "Conexão testada com sucesso!" 
-        });
-      } catch (dbError) {
-        await testPool.end();
-        console.error('Erro no teste de conexão:', dbError);
-        
-        res.status(400).json({ 
-          success: false, 
-          error: "Falha na conexão com o banco de dados",
-          details: (dbError as Error).message
-        });
-      }
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  // PUT /api/admin/db-config - Salva configurações
-  app.put("/api/admin/db-config", isAdmin, async (req, res, next) => {
-    try {
-      // Valida os dados da configuração
-      const validationResult = dbConfigSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Dados inválidos", 
-          details: validationResult.error 
-        });
-      }
-
-      // Salva as credenciais
-      await saveDbCredentials(validationResult.data);
-
-      // Log de auditoria (sem expor dados sensíveis)
-      console.log(`🔒 Configurações de banco atualizadas por ${req.user!.username} em ${new Date().toISOString()}`);
-
-      // Retorna configurações mascaradas
-      const maskedConfig = await getMaskedDbConfig();
-      
-      res.json({
-        ...maskedConfig,
-        message: "Configurações salvas com sucesso! Reinicie o servidor para aplicar as mudanças.",
-        requiresRestart: true
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
 }
