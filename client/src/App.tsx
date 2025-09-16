@@ -15,7 +15,6 @@ import LoginPage from "./pages/admin/login-page";
 import DashboardPage from "./pages/admin/dashboard-page";
 import AgentsPage from "./pages/admin/agents-page";
 import PromptsPage from "./pages/admin/prompts-page";
-import AssistantsManagementPage from "./pages/AssistantsManagementPage";
 
 function Router() {
   return (
@@ -38,10 +37,6 @@ function Router() {
       
       <ProtectedRoute path="/admin/prompts" adminOnly>
         <PromptsPage />
-      </ProtectedRoute>
-      
-      <ProtectedRoute path="/admin/assistants" adminOnly>
-        <AssistantsManagementPage />
       </ProtectedRoute>
       
       {/* Fallback */}
